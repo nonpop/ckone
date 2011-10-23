@@ -24,7 +24,7 @@ typedef enum {
 
 
 typedef enum {
-    IMMEDIATE = 0, DIRECT, INDIRECT,
+    IMMEDIATE = 0, DIRECT = 1, INDIRECT = 2,
 } e_addr_mode;
 
 

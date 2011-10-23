@@ -21,9 +21,10 @@ void clear (s_ckone* kone) {
 
 void test_mmu () {
     s_ckone k;
-    const uint32_t mem_size = 2;
-    k.mem_size = mem_size;
-    k.mem = malloc (mem_size * sizeof(uint32_t));
+    uint32_t mem[2];
+
+    k.mem_size = sizeof(mem);
+    k.mem = mem;
     
     {
         clear (&k);
@@ -51,7 +52,5 @@ void test_mmu () {
         mmu_write (&k);
         TEST (uint32_t, "%u", 42, k.mem[1]);
     }
-
-    free (k.mem);
 }
 

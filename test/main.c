@@ -4,6 +4,7 @@
 
 extern void test_instr ();
 extern void test_mmu ();
+extern void test_cpu ();
 
 
 int main() {
@@ -11,6 +12,7 @@ int main() {
 
     SUITE(test_instr);
     SUITE(test_mmu);
+    SUITE(test_cpu);
 
     END_TESTS();
 
