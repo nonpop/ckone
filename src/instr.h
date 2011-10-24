@@ -19,7 +19,7 @@ typedef enum {
 
 
 typedef enum {
-    R0 = 0, R1, R2, R3, R4, R5, R6, R7
+    R0 = 0, R1, R2, R3, R4, R5, R6, R7, SP = 6, FP = 7
 } e_register;
 
 
@@ -28,18 +28,19 @@ typedef enum {
 } e_addr_mode;
 
 
-e_opcode instr_opcode (uint32_t instr);
-e_register instr_first_operand (uint32_t instr);
-e_addr_mode instr_addr_mode (uint32_t instr);
-e_register instr_index_reg (uint32_t instr);
-uint16_t instr_addr (uint32_t instr);
+extern const char* instr_name (e_opcode opcode);
+extern e_opcode instr_opcode (int32_t instr);
+extern e_register instr_first_operand (int32_t instr);
+extern e_addr_mode instr_addr_mode (int32_t instr);
+extern e_register instr_index_reg (int32_t instr);
+extern int16_t instr_addr (int32_t instr);
 
-uint32_t make_instr (
+extern int32_t make_instr (
         e_opcode opcode,
         e_register first_operand,
         e_addr_mode addr_mode,
         e_register index_reg,
-        uint16_t addr);
+        int16_t addr);
 
 
 #endif

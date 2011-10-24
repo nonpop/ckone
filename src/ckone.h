@@ -4,22 +4,23 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include "log.h"
 
 
 typedef struct {
-    uint32_t r[8];              // registers R0-R7
+    int32_t r[8];              // registers R0-R7
     
-    uint32_t alu_in1, alu_in2;  // ALU registers
-    uint32_t alu_out;
+    int32_t alu_in1, alu_in2;  // ALU registers
+    int32_t alu_out;
 
-    uint32_t tr, pc, ir, sr;    // controller unit registers
+    int32_t tr, pc, ir, sr;    // controller unit registers
 
-    uint32_t mmu_base, mmu_limit;   // MMU registers
-    uint32_t mar, mbr;
+    int32_t mmu_base, mmu_limit;   // MMU registers
+    int32_t mar, mbr;
 
-    uint32_t mem_size;
-    uint32_t* mem;
+    size_t mem_size;
+    int32_t* mem;
 } s_ckone;
 
 

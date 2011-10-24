@@ -16,7 +16,7 @@
  * @param addr The address for which to calculate the effective address.
  * @return The effective address.
  */
-uint32_t calculate_eaddr (s_ckone* kone, uint32_t addr) {
+int32_t calculate_eaddr (s_ckone* kone, int32_t addr) {
     return kone->mmu_base + addr;
 }
 
@@ -29,7 +29,7 @@ uint32_t calculate_eaddr (s_ckone* kone, uint32_t addr) {
  * @return true if the address can be accessed.
  */
 
-bool valid_eaddr (s_ckone* kone, uint32_t eaddr) {
+bool valid_eaddr (s_ckone* kone, int32_t eaddr) {
     return eaddr >= kone->mmu_base && eaddr < kone->mmu_base + kone->mmu_limit;
 }
 
@@ -44,7 +44,7 @@ bool valid_eaddr (s_ckone* kone, uint32_t eaddr) {
  * @param kone The state structure.
  */
 void mmu_read (s_ckone* kone) {
-    uint32_t eaddr = calculate_eaddr (kone, kone->mar);
+    int32_t eaddr = calculate_eaddr (kone, kone->mar);
 
     if (!valid_eaddr (kone, eaddr)) {
         ELOG ("Tried to read from address 0x%x (base = 0x%x, limit = 0x%x)\n",
@@ -69,7 +69,7 @@ void mmu_read (s_ckone* kone) {
  * @param kone The state structure.
  */
 void mmu_write (s_ckone* kone) {
-    uint32_t eaddr = calculate_eaddr (kone, kone->mar);
+    int32_t eaddr = calculate_eaddr (kone, kone->mar);
 
     if (!valid_eaddr (kone, eaddr)) {
         ELOG ("Tried to write to address 0x%x (base = 0x%x, limit = 0x%x\n",

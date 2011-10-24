@@ -4,6 +4,9 @@
 
 void test_instr () {
     {
+        TEST_STR ("JZER", instr_name (JZER));
+    }
+    {
         uint32_t instr = make_instr (LOAD, R2, DIRECT, R1, 1234);
         TEST (e_opcode, "0x%x", LOAD, instr_opcode (instr));
         TEST (e_register, "%d", R2, instr_first_operand (instr));
