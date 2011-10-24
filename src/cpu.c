@@ -3,6 +3,7 @@
 #include "instr.h"
 
 
+
 void cpu_fetch_instr (s_ckone* kone) {
     kone->mar = kone->pc++;
     mmu_read (kone);

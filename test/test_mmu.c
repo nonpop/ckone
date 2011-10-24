@@ -1,22 +1,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include "test.h"
+#include "util.h"
 #include "../src/mmu.h"
-
-
-void clear (s_ckone* kone) {
-    uint32_t* mem = kone->mem;
-    uint32_t mem_size = kone->mem_size;
-
-    memset (kone, 0, sizeof(s_ckone));
-    kone->mem = mem;
-    kone->mem_size = mem_size;
-
-    memset (kone->mem, 0, kone->mem_size*sizeof(uint32_t));
-
-    kone->mmu_base = 1;
-    kone->mmu_limit = 2;
-}
 
 
 void test_mmu () {
@@ -28,6 +14,8 @@ void test_mmu () {
     
     {
         clear (&k);
+        k.mmu_base = 1;
+        k.mmu_limit = 2;
         k.mem[1] = 1337;
         k.mar = 0;
 
@@ -37,6 +25,8 @@ void test_mmu () {
     }
     {
         clear (&k);
+        k.mmu_base = 1;
+        k.mmu_limit = 2;
         k.mar = 2;
 
         mmu_read (&k);
@@ -44,6 +34,8 @@ void test_mmu () {
     }
     {
         clear (&k);
+        k.mmu_base = 1;
+        k.mmu_limit = 2;
         TEST (uint32_t, "%u", 0, k.mem[1]);
 
         k.mar = 0;
