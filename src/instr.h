@@ -3,6 +3,7 @@
 
 
 #include <stdint.h>
+#include <stddef.h>
 
 
 typedef enum {
@@ -28,7 +29,7 @@ typedef enum {
 } e_addr_mode;
 
 
-extern const char* instr_name (e_opcode opcode);
+extern const char* op_name (e_opcode opcode);
 extern e_opcode instr_opcode (int32_t instr);
 extern e_register instr_first_operand (int32_t instr);
 extern e_addr_mode instr_addr_mode (int32_t instr);
@@ -41,6 +42,8 @@ extern int32_t make_instr (
         e_addr_mode addr_mode,
         e_register index_reg,
         int16_t addr);
+
+extern void instr_string (uint32_t instr, char* buffer, size_t buf_size);
 
 
 #endif

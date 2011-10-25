@@ -2,7 +2,7 @@
 #include "mmu.h"
 #include "instr.h"
 #include "alu.h"
-#include "svc.h"
+#include "ext.h"
 
 
 /**
@@ -76,6 +76,25 @@ void cpu_exec_store_load (s_ckone* kone) {
         mmu_write (kone);
     } else {
         kone->r[instr_first_operand (kone->ir)] = kone->tr;
+    }
+}
+
+
+void cpu_exec_in_out (s_ckone* kone) {
+    e_register reg = instr_first_operand (kone->ir);
+
+    if (instr_opcode (kone->ir) == IN) {
+        int32_t res;
+        if (!ext_input (kone->tr, &res)) {
+            kone->sr |= SR_M;
+            return;
+        }
+        kone->r[reg] = res;
+    } else {
+        if (!ext_output (kone->tr, kone->r[reg])) {
+            kone->sr |= SR_M;
+            return;
+        }
     }
 }
 
@@ -165,45 +184,49 @@ void cpu_exec_jump_cond_status (s_ckone* kone) {
 }
 
 
-void cpu_exec_call (s_ckone* kone) {
-    e_register sp = instr_first_operand (kone->ir);
-
-    // push PC and FP
+/**
+ * Push PC and FP onto the stack and set FP = sp.
+ */
+void push_pc_fp (s_ckone* kone, e_register sp) {
     kone->mar = kone->r[sp] + 1;
     kone->mbr = kone->pc;
     mmu_write (kone);
     kone->mar++;
     kone->mbr = kone->r[FP];
     mmu_write (kone);
+    kone->r[sp] += 2;
+    kone->r[FP] = kone->r[sp];
+}
+
+
+void pop_fp_pc (s_ckone* kone, e_register sp) {
+    kone->mar = kone->r[sp];
+    mmu_read (kone);
+    int32_t fp = kone->mbr;
+    kone->mar--;
+    mmu_read (kone);
+    kone->r[sp] -= 2;
+    kone->r[FP] = fp;
+    kone->pc = kone->mbr;
+}
+
+
+void cpu_exec_call (s_ckone* kone) {
+    push_pc_fp (kone, instr_first_operand (kone->ir));
     if (kone->sr & SR_M)
         return;
-    kone->r[sp] += 2;
 
-    // jump
     kone->pc = kone->tr;
 }
 
 
 void cpu_exec_exit (s_ckone* kone) {
     e_register sp = instr_first_operand (kone->ir);
-
-    // restore FP and PC
-    kone->mar = kone->r[sp];
-    mmu_read (kone);
-    int32_t fp = kone->mbr;
-    kone->mar--;
-    mmu_read (kone);
+    pop_fp_pc (kone, sp);
     if (kone->sr & SR_M)
         return;
-
-    kone->r[sp] -= 2;
-    kone->r[FP] = fp;
-
-    // remove parameters from stack
-    kone->r[sp] -= kone->tr;
-
-    // jump
-    kone->pc = kone->mbr;
+    
+    kone->r[sp] -= kone->tr;    // remove parameters from stack
 }
 
 
@@ -263,6 +286,17 @@ void cpu_exec_popr (s_ckone* kone) {
 }
 
 
+void cpu_exec_svc (s_ckone* kone) {
+    e_register sp = instr_first_operand (kone->ir);
+    push_pc_fp (kone, sp);
+
+    ext_svc (kone);
+
+    if (!kone->halted)
+        pop_fp_pc (kone, sp);
+}
+
+
 /**
  * Executes the current instruction. Assumes that the instruction has been
  * fetched and the second operand has been calculated and stored into TR.
@@ -273,6 +307,8 @@ void cpu_execute_instruction (s_ckone* kone) {
         ;   // nothing
     else if (op == STORE || op == LOAD)
         cpu_exec_store_load (kone);
+    else if (op == IN || op == OUT)
+        cpu_exec_in_out (kone);
     else if (op >= ADD && op <= SHRA)
         cpu_exec_arithmetic (kone);
     else if (op == COMP)
@@ -296,10 +332,30 @@ void cpu_execute_instruction (s_ckone* kone) {
     else if (op == POPR)
         cpu_exec_popr (kone);
     else if (op == SVC)
-        svc_call (kone);
+        cpu_exec_svc (kone);
     else {
         ELOG ("Unknown opcode: %d\n", op);
         kone->sr |= SR_U;
     }
+}
+
+
+/**
+ * Fetch the next instruction, calculate its second operand, and
+ * execute it.
+ */
+void cpu_step (s_ckone* kone) {
+    cpu_fetch_instr (kone);
+    if (kone->sr & SR_M)
+        return;
+
+    cpu_calculate_second_operand (kone);
+    if (kone->sr & (SR_O | SR_M | SR_U))
+        return;
+    
+    char buf[1024];
+    instr_string (kone->ir, buf, sizeof(buf));
+    DLOG ("Executing %s\n", buf);
+    cpu_execute_instruction (kone);
 }
 

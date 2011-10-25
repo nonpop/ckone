@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "instr.h"
 #include "ckone.h"
 
@@ -24,7 +25,7 @@ s_instr_name instruction_names[] = {
 };
 
 
-const char* instr_name (e_opcode opcode) {
+const char* op_name (e_opcode opcode) {
     s_instr_name* in = instruction_names;
     while (in->name) {
         if (in->opcode == opcode)
@@ -70,5 +71,12 @@ int32_t make_instr (
         int16_t addr)
 {
     return (opcode << 24) | (first_operand << 21) | (addr_mode << 19) | (index_reg << 16) | addr;
+}
+
+
+void instr_string (uint32_t instr, char* buffer, size_t buf_size) {
+    snprintf (buffer, buf_size, "%s, first opr: R%u, indirections: %u, index: R%u, constant: %d",
+            op_name (instr_opcode (instr)), instr_first_operand (instr),
+            instr_addr_mode (instr), instr_index_reg (instr), instr_addr (instr));
 }
 

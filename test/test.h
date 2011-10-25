@@ -26,6 +26,9 @@
 }
 
 
+#define BEGIN(name) printf(">>> %s\n", name);
+
+
 #define TEST(type, fmt, expected, actual) { \
     printf(__FILE__ ":%d: " #actual " = ", __LINE__); \
     type TEST_expected = (expected); \
@@ -39,6 +42,22 @@
     } \
     test_tests_total++; \
 }
+
+
+#define TEST_BOOL(expected, actual) { \
+    printf(__FILE__ ":%d: " #actual " = ", __LINE__); \
+    bool TEST_expected = (expected); \
+    bool TEST_result = (actual); \
+    printf("%s: ", TEST_result? "true" : "false"); \
+    if (TEST_result != TEST_expected) { \
+        printf("***FAILED***: expected %s\n", TEST_expected? "true" : "false"); \
+    } else { \
+        printf("ok\n"); \
+        test_tests_succeeded++; \
+    } \
+    test_tests_total++; \
+}
+
 
 #define TEST_STR(expected, actual) { \
     printf(__FILE__ ":%d: " #actual " = ", __LINE__); \

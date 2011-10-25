@@ -21,6 +21,8 @@ typedef struct {
 
     size_t mem_size;
     int32_t* mem;
+
+    bool halted;
 } s_ckone;
 
 

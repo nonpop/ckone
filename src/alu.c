@@ -101,21 +101,18 @@ void alu_shl (s_ckone* kone) {
     kone->alu_out = kone->alu_in1 << kone->alu_in2;
 }
 
-
 void alu_shr (s_ckone* kone) {
     kone->alu_out = kone->alu_in1 >> kone->alu_in2;
+
+    if (kone->alu_in2 > 0) {
+        int32_t sign_bits = kone->alu_in1 & 0x80000000;
+        sign_bits >>= (kone->alu_in2 - 1);
+        kone->alu_out ^= sign_bits;
+    }
 }
 
 
 void alu_shra (s_ckone* kone) {
-    int32_t msb = kone->alu_in1 & 0x80000000;
-    int32_t res = kone->alu_in1;
-
-    for (int i = 0; i < kone->alu_in2; i++) {
-        res >>= 1;
-        res |= msb;
-    }
-
-    kone->alu_out = res;
+    kone->alu_out = kone->alu_in1 >> kone->alu_in2;
 }
 
