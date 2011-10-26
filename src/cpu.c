@@ -9,7 +9,7 @@
  * Fetch the next instruction to IR.
  *
  * Affects: MAR, MBR, PC, IR
- * SR: M
+ * Status: M (invalid memory access)
  */
 void cpu_fetch_instr (s_ckone* kone) {
     kone->mar = kone->pc++;
@@ -26,7 +26,8 @@ void cpu_fetch_instr (s_ckone* kone) {
  * and stores it to the TR register.
  *
  * Affects: ALU_IN1, ALU_IN2, ALU_OUT, TR, MAR, MBR
- * SR: O, M, U
+ * Status: O (arithmetic overflow), M (invalid memory access),
+ *         U (invalid addressing mode)
  */
 void cpu_calculate_second_operand (s_ckone* kone) {
     // calculate the first address
@@ -69,6 +70,12 @@ void cpu_calculate_second_operand (s_ckone* kone) {
 }
 
 
+/**
+ * Execute a store or load command.
+ *
+ * Affects: MAR, MBR, Rx
+ * Status: M (invalid memory access)
+ */
 void cpu_exec_store_load (s_ckone* kone) {
     if (instr_opcode (kone->ir) == STORE) {
         kone->mar = kone->tr;
@@ -89,6 +96,12 @@ void cpu_exec_in_out (s_ckone* kone) {
 }
 
 
+/**
+ * Execute an arithmetic/logic command.
+ *
+ * Affects: ALU_IN1, ALU_IN2, ALU_OUT, Rx
+ * Status: O (overflow), Z (division by zero
+ */
 void cpu_exec_arithmetic (s_ckone* kone) {
     kone->alu_in1 = kone->r[instr_first_operand (kone->ir)];
     kone->alu_in2 = kone->tr;
@@ -116,6 +129,11 @@ void cpu_exec_arithmetic (s_ckone* kone) {
 }
 
 
+/**
+ * Execute a comp command.
+ *
+ * Status: L (less than), E (equal), G (greater)
+ */
 void cpu_exec_comp (s_ckone* kone) {
     kone->sr &= ~(SR_L | SR_E | SR_G);
 
@@ -131,51 +149,45 @@ void cpu_exec_comp (s_ckone* kone) {
 }
 
 
+/**
+ * Execute a jump command.
+ *
+ * Affects: PC
+ */
 void cpu_exec_jump (s_ckone* kone) {
-    kone->pc = kone->tr;
-}
-
-
-void cpu_exec_jump_cond_register (s_ckone* kone) {
     int32_t a = kone->r[instr_first_operand (kone->ir)];
+    int32_t sr = kone->sr;
     bool jump = false;
 
     switch (instr_opcode (kone->ir)) {
+        case JUMP: jump = true; break;
         case JNEG: if (a < 0) jump = true; break;
         case JZER: if (a == 0) jump = true; break;
         case JPOS: if (a > 0) jump = true; break;
         case JNNEG: if (a >= 0) jump = true; break;
         case JNZER: if (a != 0) jump = true; break;
         case JNPOS: if (a <= 0) jump = true; break;
-        default: ELOG ("We should never get here", 0); break;
-    }
 
-    if (jump)
-        cpu_exec_jump (kone);
-}
-
-
-void cpu_exec_jump_cond_status (s_ckone* kone) {
-    bool jump = false;
-    int32_t sr = kone->sr;
-
-    switch (instr_opcode (kone->ir)) {
         case JLES: if (sr & SR_L) jump = true; break;
         case JEQU: if (sr & SR_E) jump = true; break;
         case JGRE: if (sr & SR_G) jump = true; break;
         case JNLES: if (!(sr & SR_L)) jump = true; break;
         case JNEQU: if (!(sr & SR_E)) jump = true; break;
         case JNGRE: if (!(sr & SR_G)) jump = true; break;
+
         default: ELOG ("We should never get here", 0); break;
     }
 
     if (jump)
-        cpu_exec_jump (kone);
+        kone->pc = kone->tr;
 }
 
 
 /**
  * Push PC and FP onto the stack and set FP = sp.
+ *
+ * Affects: MAR, MBR, Rx, FP
+ * Status: M (invalid memory access)
  */
 void push_pc_fp (s_ckone* kone, e_register sp) {
     kone->mar = kone->r[sp] + 1;
@@ -189,6 +201,12 @@ void push_pc_fp (s_ckone* kone, e_register sp) {
 }
 
 
+/**
+ * Pop FP and PC off the stack.
+ *
+ * Affects: MAR, MBR, Rx, FP
+ * Status: M (invalid memory access)
+ */
 void pop_fp_pc (s_ckone* kone, e_register sp) {
     kone->mar = kone->r[sp];
     mmu_read (kone);
@@ -201,6 +219,12 @@ void pop_fp_pc (s_ckone* kone, e_register sp) {
 }
 
 
+/**
+ * Execute a call command.
+ *
+ * Affects: MAR, MBR, Rx, FP, PC
+ * Status: M (invalid memory access)
+ */
 void cpu_exec_call (s_ckone* kone) {
     push_pc_fp (kone, instr_first_operand (kone->ir));
     if (kone->sr & SR_M)
@@ -210,6 +234,12 @@ void cpu_exec_call (s_ckone* kone) {
 }
 
 
+/**
+ * Execute an exit command.
+ *
+ * Affects: MAR, MBR, Rx, FP, PC
+ * Status: M (invalid memory access)
+ */
 void cpu_exec_exit (s_ckone* kone) {
     e_register sp = instr_first_operand (kone->ir);
     pop_fp_pc (kone, sp);
@@ -220,6 +250,15 @@ void cpu_exec_exit (s_ckone* kone) {
 }
 
 
+/**
+ * Push a value onto the stack.
+ *
+ * @param sp The stack pointer.
+ * @param value The value to push.
+ *
+ * Affects: MAR, MBR, Rsp
+ * Status: M (invalid memory access)
+ */
 void cpu_push_value (s_ckone* kone, e_register sp, int32_t value) {
     kone->mbr = value;
     kone->r[sp]++;
@@ -228,11 +267,34 @@ void cpu_push_value (s_ckone* kone, e_register sp, int32_t value) {
 }
 
 
+/**
+ * Push a register onto the stack. It first stores the value in Rreg
+ * onto the stack and then increases Rsp, so in case these are the same
+ * register, the pushed value will be the original value.
+ *
+ * @param sp The stack pointer.
+ * @param reg The register to push.
+ *
+ * Affects: MAR, MBR, Rsp
+ * Status: M (invalid memory access)
+ */
 void cpu_push_register (s_ckone* kone, e_register sp, e_register reg) {
     cpu_push_value (kone, sp, kone->r[reg]);
 }
 
 
+/**
+ * Pop a value off the stack and store it to a register.
+ * It first assigns the value to Rreg and then decreases Rsp, so
+ * in case these are the same register, the popped value will be
+ * decreased by one.
+ *
+ * @param sp The stack pointer.
+ * @param reg The register in which to store the value.
+ *
+ * Affects: MAR, MBR, Rsp, Rreg
+ * Status: M (invalid memory access)
+ */
 void cpu_pop_register (s_ckone* kone, e_register sp, e_register reg) {
     kone->mar = kone->r[sp];
     mmu_read (kone);
@@ -244,16 +306,31 @@ void cpu_pop_register (s_ckone* kone, e_register sp, e_register reg) {
 }
 
 
+/**
+ * Execute a push command.
+ *
+ * @see cpu_push_value ()
+ */
 void cpu_exec_push (s_ckone* kone) {
     cpu_push_value (kone, instr_first_operand (kone->ir), kone->tr);
 }
 
 
+/**
+ * Execute a pop command.
+ *
+ * @see cpu_pop_register ()
+ */
 void cpu_exec_pop (s_ckone* kone) {
     cpu_pop_register (kone, instr_first_operand (kone->ir), instr_index_reg (kone->ir));
 }
 
 
+/**
+ * Execute a pushr command.
+ *
+ * @see cpu_push_register ()
+ */
 void cpu_exec_pushr (s_ckone* kone) {
     e_register sp = instr_first_operand (kone->ir);
 
@@ -265,6 +342,11 @@ void cpu_exec_pushr (s_ckone* kone) {
 }
 
 
+/**
+ * Execute a popr command.
+ *
+ * @see cpu_pop_register ()
+ */
 void cpu_exec_popr (s_ckone* kone) {
     e_register sp = instr_first_operand (kone->ir);
 
@@ -276,6 +358,12 @@ void cpu_exec_popr (s_ckone* kone) {
 }
 
 
+/**
+ * Execute a svc command.
+ *
+ * Affects: MAR, MBR, Rx, FP
+ * Status: M (invalid memory access)
+ */
 void cpu_exec_svc (s_ckone* kone) {
     e_register sp = instr_first_operand (kone->ir);
     push_pc_fp (kone, sp);
@@ -305,12 +393,8 @@ void cpu_execute_instruction (s_ckone* kone) {
         cpu_exec_arithmetic (kone);
     else if (op == COMP)
         cpu_exec_comp (kone);
-    else if (op == JUMP)
+    else if (op >= JUMP && op <= JNGRE)
         cpu_exec_jump (kone);
-    else if (op >= JNEG && op <= JNPOS)
-        cpu_exec_jump_cond_register (kone);
-    else if (op >= JLES && op <= JNGRE)
-        cpu_exec_jump_cond_status (kone);
     else if (op == CALL)
         cpu_exec_call (kone);
     else if (op == EXIT)
