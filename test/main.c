@@ -1,5 +1,6 @@
 #define TEST_MAIN
 #include "test.h"
+#include "../src/args.h"
 
 
 extern void test_instr ();
@@ -9,6 +10,8 @@ extern void test_alu ();
 
 
 int main() {
+    args.verbose = true;
+
     BEGIN_TESTS();
 
     SUITE(test_instr);

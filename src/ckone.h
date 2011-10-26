@@ -9,6 +9,10 @@
 #include "log.h"
 
 
+#define DEFAULT_MEM_SIZE 1024
+#define DEFAULT_MEM_SIZE_STR "1024"
+
+
 typedef struct {
     int32_t r[8];              // registers R0-R7
     

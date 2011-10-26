@@ -1,7 +1,10 @@
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 #include "ckone.h"
 #include "instr.h"
+#include "mmu.h"
+#include "args.h"
 
 
 typedef struct {
@@ -10,6 +13,11 @@ typedef struct {
     FILE* file;
     bool is_input;
 } s_device;
+
+
+enum {
+    CRT = 0, KBD = 1, STDIN = 6, STDOUT = 7
+};
 
 
 s_device devices[] = {
@@ -133,6 +141,9 @@ FILE* get_device_file (uint32_t dev_num, bool input) {
         return NULL;
     }
 
+    if (dev->file == NULL)
+        ELOG ("The file for device %d is NULL\n", dev_num);
+
     return dev->file;
 }
 
@@ -162,7 +173,6 @@ void ext_in (s_ckone* kone) {
  * Writes the value in the current instruction's first operand
  * register to the device denoted in TR.
  *
- * Affects: output
  * Status: M (invalid device)
  */
 void ext_out (s_ckone* kone) {
@@ -191,30 +201,120 @@ int32_t svc_halt (s_ckone* kone) {
 }
 
 
+/**
+ * Read a value from KBD and store it to the location given
+ * on the stack.
+ *
+ * NOTE: At least TitoKone 1.203 seems to have a bug here which
+ * causes READ to take two arguments and ignore the second one.
+ * This can be emulated using the --emulate-bugs flag.
+ *
+ * @return How many arguments to pop.
+ *
+ * Affects: MAR, MBR
+ * Status: M (invalid memory access)
+ */
 int32_t svc_read (s_ckone* kone) {
-    DLOG ("svc_read ()\n", kone);
-    return 1;
+    FILE* f = get_device_file (KBD, true);
+    if (!f) {
+        ELOG ("WTF?", 0);
+        return 0;
+    }
+
+    uint32_t ofs = args.emulate_bugs? 1 : 0;
+
+    kone->mar = kone->r[FP] - (2 + ofs);
+    mmu_read (kone);    // read the address of the destination variable
+    kone->mar = kone->mbr;
+    kone->mbr = read_input (f);     // read the value from keyboard
+    mmu_write (kone);               // write it to the destination variable
+
+    return 1 + ofs;
 }
 
 
+/**
+ * Write a value given on the stack to CRT.
+ *
+ * @return How many arguments to pop.
+ *
+ * Affects: MAR, MBR
+ * Status: M (invalid memory access)
+ */
 int32_t svc_write (s_ckone* kone) {
-    DLOG ("svc_write ()\n", kone);
+    FILE* f = get_device_file (CRT, false);
+    if (!f) {
+        ELOG ("WTF?", 0);
+        return 0;
+    }
+
+    kone->mar = kone->r[FP] - 2;
+    mmu_read (kone);
+    write_output (f, kone->mbr);
     return 1;
 }
 
 
+/**
+ * Get the current time and store it to the locations given on the stack.
+ *
+ * @return How many arguments to pop.
+ *
+ * Affects: MAR, MBR
+ * Status: M (invalid memory access)
+ */
 int32_t svc_time (s_ckone* kone) {
-    DLOG ("svc_time ()\n", kone);
+    time_t now = time (NULL);
+    struct tm* t = localtime (&now);
+
+    kone->mar = kone->r[FP] - 2;
+    kone->mbr = t->tm_sec;
+    mmu_write (kone);
+    kone->mar--;
+    kone->mbr = t->tm_min;
+    mmu_write (kone);
+    kone->mar--;
+    kone->mbr = t->tm_hour;
+    mmu_write (kone);
+
     return 3;
 }
 
 
+/**
+ * Get the current date and store it to the locations given on the stack.
+ *
+ * @return How many arguments to pop.
+ *
+ * Affects: MAR, MBR
+ * Status: M (invalid memory access)
+ */
 int32_t svc_date (s_ckone* kone) {
-    DLOG ("svc_date ()\n", kone);
+    time_t now = time (NULL);
+    struct tm* t = localtime (&now);
+
+    kone->mar = kone->r[FP] - 2;
+    kone->mbr = t->tm_mday;
+    mmu_write (kone);
+    kone->mar--;
+    kone->mbr = t->tm_mon + 1;
+    mmu_write (kone);
+    kone->mar--;
+    kone->mbr = t->tm_year + 1900;
+    mmu_write (kone);
+
     return 3;
 }
 
 
+/**
+ * Execute an svc command.
+ *
+ * @return How many arguments to pop.
+ *
+ * Affects: Rx, MAR, MBR, halted
+ * Status: M (invalid memory access, invalid device)
+ */
 int32_t ext_svc (s_ckone* kone) {
     switch (kone->tr) {
         case 11: return svc_halt (kone);

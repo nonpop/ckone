@@ -1,2 +1,3 @@
-add_executable(ckone instr.c mmu.c cpu.c)
+add_executable(ckone main.c args.c ckone.c instr.c cpu.c alu.c mmu.c ext.c log.c)
+
 

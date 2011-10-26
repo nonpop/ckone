@@ -1,13 +1,11 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include "log.h"
-
-
-e_loglevel loglevel;
+#include "args.h"
 
 
 void wlog (e_loglevel lvl, const char* fmt, ...) {
-    if (lvl >= loglevel)
+    if (lvl >= LOG_INFO || args.verbose)
     {
         va_list ap;
         va_start (ap, fmt);
