@@ -14,7 +14,8 @@ extern void ext_init_devices (FILE* stdin_file, FILE* stdout_file);
 
 
 int main (int argc, char** argv) {
-    parse_args (argc, argv);
+    if (!parse_args (argc, argv))
+        return EXIT_FAILURE;
 
     FILE* stdin_file = fopen (args.stdin_file, "r");
     if (!stdin_file)
