@@ -81,20 +81,10 @@ void cpu_exec_store_load (s_ckone* kone) {
 
 
 void cpu_exec_in_out (s_ckone* kone) {
-    e_register reg = instr_first_operand (kone->ir);
-
     if (instr_opcode (kone->ir) == IN) {
-        int32_t res;
-        if (!ext_input (kone->tr, &res)) {
-            kone->sr |= SR_M;
-            return;
-        }
-        kone->r[reg] = res;
+        ext_in (kone);
     } else {
-        if (!ext_output (kone->tr, kone->r[reg])) {
-            kone->sr |= SR_M;
-            return;
-        }
+        ext_out (kone);
     }
 }
 
@@ -290,10 +280,12 @@ void cpu_exec_svc (s_ckone* kone) {
     e_register sp = instr_first_operand (kone->ir);
     push_pc_fp (kone, sp);
 
-    ext_svc (kone);
+    uint32_t params = ext_svc (kone);
 
-    if (!kone->halted)
+    if (!kone->halted) {
         pop_fp_pc (kone, sp);
+        kone->r[sp] -= params;
+    }
 }
 
 

@@ -2,6 +2,7 @@
 #define CKONE_H
 
 
+#include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -23,6 +24,11 @@ typedef struct {
     int32_t* mem;
 
     bool halted;
+
+    int32_t input;      ///< the last integer read from the input device
+    int32_t output;     ///< the next integer to be written to the output device
+    FILE* dev_in;       ///< stream used for input (KBD)
+    FILE* dev_out;      ///< stream used for output (CRT)
 } s_ckone;
 
 
