@@ -10,76 +10,73 @@
 
 
 /**
- * Calculate the effective address of the given address.
+ * Calculate the physical address of the given logical address.
  *
- * @param kone The state structure.
- * @param addr The address for which to calculate the effective address.
- * @return The effective address.
+ * @param laddr The logical address (i.e. relative to mmu_base)
+ * @return The physical address (i.e. absolute address)
  */
-int32_t calculate_eaddr (s_ckone* kone, int32_t addr) {
-    return kone->mmu_base + addr;
+uint32_t calculate_paddr (s_ckone* kone, uint32_t laddr) {
+    return kone->mmu_base + laddr;
 }
 
 
 /**
- * Check if the given effective address is valid.
+ * Check if the given physical address is valid.
  *
- * @param kone The state structure.
- * @param eaddr The effective address.
+ * @param paddr The physical address.
  * @return true if the address can be accessed.
  */
 
-bool valid_eaddr (s_ckone* kone, int32_t eaddr) {
-    return eaddr >= kone->mmu_base && eaddr < kone->mmu_base + kone->mmu_limit;
+bool valid_paddr (s_ckone* kone, int32_t paddr) {
+    return paddr >= kone->mmu_base && paddr < kone->mmu_base + kone->mmu_limit;
 }
 
 
 /**
  * Read a word from memory.
  *
- * Calculates the effective address for MAR and reads data from
- * that memory address to MBR. Sets the SR_M bit of SR if the address
- * is outside the limits.
+ * Calculates the physical address for MAR and reads data from
+ * that memory address to MBR.
  *
- * @param kone The state structure.
+ * Affects: MBR
+ * Status: M (the physical address is outside the memory limits)
  */
 void mmu_read (s_ckone* kone) {
-    int32_t eaddr = calculate_eaddr (kone, kone->mar);
+    int32_t paddr = calculate_paddr (kone, kone->mar);
 
-    if (!valid_eaddr (kone, eaddr)) {
+    if (!valid_paddr (kone, paddr)) {
         ELOG ("Tried to read from address 0x%x (base = 0x%x, limit = 0x%x)\n",
-                eaddr, kone->mmu_base, kone->mmu_limit);
+                paddr, kone->mmu_base, kone->mmu_limit);
 
         kone->sr |= SR_M;
         return;
     }
 
-    kone->mbr = kone->mem[eaddr];
-    DLOG ("Read 0x%x from 0x%x\n", kone->mbr, eaddr);
+    kone->mbr = kone->mem[paddr];
+    DLOG ("Read 0x%x from 0x%x\n", kone->mbr, paddr);
 }
 
 
 /**
  * Write a word to memory.
  *
- * Calculates the effective address for MAR and writes the contents of
- * MBR to that memory address. Sets the SR_M bit of SR if the address
- * is outside the limits.
+ * Calculates the physical address for MAR and writes the contents of
+ * MBR to that memory address.
  *
- * @param kone The state structure.
+ * Status: M (the physical address is outside the memory limits)
  */
 void mmu_write (s_ckone* kone) {
-    int32_t eaddr = calculate_eaddr (kone, kone->mar);
+    int32_t paddr = calculate_paddr (kone, kone->mar);
 
-    if (!valid_eaddr (kone, eaddr)) {
+    if (!valid_paddr (kone, paddr)) {
         ELOG ("Tried to write to address 0x%x (base = 0x%x, limit = 0x%x\n",
-                eaddr, kone->mmu_base, kone->mmu_limit);
+                paddr, kone->mmu_base, kone->mmu_limit);
 
         kone->sr |= SR_M;
         return;
     }
 
-    kone->mem[eaddr] = kone->mbr;
-    DLOG ("Wrote 0x%x to 0x%x\n", kone->mem[eaddr], eaddr);
+    kone->mem[paddr] = kone->mbr;
+    DLOG ("Wrote 0x%x to 0x%x\n", kone->mem[paddr], paddr);
 }
 

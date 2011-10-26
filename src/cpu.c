@@ -14,9 +14,6 @@
 void cpu_fetch_instr (s_ckone* kone) {
     kone->mar = kone->pc++;
     mmu_read (kone);
-    if (kone->sr & SR_M)    // check that the memory was successfully read
-        return;
-
     kone->ir = kone->mbr;
 }
 
@@ -227,9 +224,6 @@ void pop_fp_pc (s_ckone* kone, e_register sp) {
  */
 void cpu_exec_call (s_ckone* kone) {
     push_pc_fp (kone, instr_first_operand (kone->ir));
-    if (kone->sr & SR_M)
-        return;
-
     kone->pc = kone->tr;
 }
 
@@ -243,9 +237,6 @@ void cpu_exec_call (s_ckone* kone) {
 void cpu_exec_exit (s_ckone* kone) {
     e_register sp = instr_first_operand (kone->ir);
     pop_fp_pc (kone, sp);
-    if (kone->sr & SR_M)
-        return;
-    
     kone->r[sp] -= kone->tr;    // remove parameters from stack
 }
 
@@ -298,9 +289,6 @@ void cpu_push_register (s_ckone* kone, e_register sp, e_register reg) {
 void cpu_pop_register (s_ckone* kone, e_register sp, e_register reg) {
     kone->mar = kone->r[sp];
     mmu_read (kone);
-    if (kone->sr & SR_M)
-        return;
-
     kone->r[reg] = kone->mbr;
     kone->r[sp]--;
 }
@@ -334,11 +322,8 @@ void cpu_exec_pop (s_ckone* kone) {
 void cpu_exec_pushr (s_ckone* kone) {
     e_register sp = instr_first_operand (kone->ir);
 
-    for (e_register i = R0; i <= R6; i++) {
+    for (e_register i = R0; i <= R6; i++)
         cpu_push_register (kone, sp, i);
-        if (kone->sr & SR_M)
-            return;
-    }
 }
 
 
@@ -350,11 +335,8 @@ void cpu_exec_pushr (s_ckone* kone) {
 void cpu_exec_popr (s_ckone* kone) {
     e_register sp = instr_first_operand (kone->ir);
 
-    for (e_register i = R0; i <= R6; i--) {
+    for (e_register i = R0; i <= R6; i--)
         cpu_pop_register (kone, sp, R6 - i);    // stupid unsigned integers ;p
-        if (kone->sr & SR_M)
-            return;
-    }
 }
 
 
