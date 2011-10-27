@@ -1,3 +1,16 @@
+/**
+ * @file cpu.c
+ *
+ * The main part of the CPU. Contains code for all operations except the 
+ * arithmetic/logic operations and operations involving the external world 
+ * (IN, OUT, SVC). Also contains code for performing one execution cycle. 
+ *
+ * Calls functions in alu.c and ext.c to perform operations not implemented
+ * here, functions in mmu.c to read and write memory, and functions in
+ * instr.c to decode instructions.
+ */
+
+
 #include "cpu.h"
 #include "mmu.h"
 #include "instr.h"
@@ -10,9 +23,14 @@
  * Fetch the next instruction to IR.
  *
  * Affects: MAR, MBR, PC, IR
- * Status: M (invalid memory access)
+ *
+ * Affected status bits: ::SR_M
  */
-void cpu_fetch_instr (s_ckone* kone) {
+static void 
+cpu_fetch_instr (
+        s_ckone* kone       ///< The state structure.
+        ) 
+{
     DLOG ("Fetching instruction...\n", 0);
     kone->mar = kone->pc++;
     mmu_read (kone);
@@ -25,10 +43,14 @@ void cpu_fetch_instr (s_ckone* kone) {
  * and stores it to the TR register.
  *
  * Affects: ALU_IN1, ALU_IN2, ALU_OUT, TR, MAR, MBR
- * Status: O (arithmetic overflow), M (invalid memory access),
- *         U (invalid addressing mode)
+ *
+ * Affected status bits: ::SR_O, ::SR_M, ::SR_U
  */
-void cpu_calculate_second_operand (s_ckone* kone) {
+static void 
+cpu_calculate_second_operand (
+        s_ckone* kone       ///< The state structure.
+        ) 
+{
     DLOG ("Calculating second operand...\n", 0);
     // calculate the first address
     kone->alu_in1 = instr_addr (kone->ir);
@@ -73,24 +95,19 @@ void cpu_calculate_second_operand (s_ckone* kone) {
 
 
 /**
- * Reset the CPU. Clears the SR and PC registers and the halted
- * flog but does not touch anything else.
- */
-void cpu_reset (s_ckone* kone) {
-    kone->sr = 0;
-    kone->pc = 0;
-    kone->halted = false;
-    ILOG ("CPU reset.\n", 0);
-}
-
-
-/**
- * Execute a store or load command.
+ * Execute a STORE or LOAD command.
  *
- * Affects: MAR, MBR, Rx
- * Status: M (invalid memory access)
+ * Affects: 
+ *  - MAR, MBR (STORE)
+ *  - Rx (LOAD)
+ *
+ * Affected status bits: ::SR_M
  */
-static void cpu_exec_store_load (s_ckone* kone) {
+static void 
+cpu_exec_store_load (
+        s_ckone* kone       ///< The state structure.
+        ) 
+{
     if (instr_opcode (kone->ir) == STORE) {
         kone->mar = kone->tr;
         kone->mbr = kone->r[instr_first_operand (kone->ir)];
@@ -101,12 +118,23 @@ static void cpu_exec_store_load (s_ckone* kone) {
 }
 
 
-static void cpu_exec_in_out (s_ckone* kone) {
-    if (instr_opcode (kone->ir) == IN) {
+/**
+ * Execute an IN or OUT command.
+ * See ext_in (), ext_out ().
+ *
+ * Affects: Rx (IN)
+ *
+ * Affected status bits: ::SR_M
+ */
+static void 
+cpu_exec_in_out (
+        s_ckone* kone       ///< The state structure.
+        ) 
+{
+    if (instr_opcode (kone->ir) == IN)
         ext_in (kone);
-    } else {
+    else
         ext_out (kone);
-    }
 }
 
 
@@ -114,9 +142,16 @@ static void cpu_exec_in_out (s_ckone* kone) {
  * Execute an arithmetic/logic command.
  *
  * Affects: ALU_IN1, ALU_IN2, ALU_OUT, Rx
- * Status: O (overflow), Z (division by zero
+ *
+ * Affected status bits: 
+ *  - ::SR_O (ADD, SUB, MUL)
+ *  - ::SR_Z (DIV, MOD)
  */
-static void cpu_exec_arithmetic (s_ckone* kone) {
+static void 
+cpu_exec_arithmetic (
+        s_ckone* kone       ///< The state structure.
+        ) 
+{
     kone->alu_in1 = kone->r[instr_first_operand (kone->ir)];
     kone->alu_in2 = kone->tr;
 
@@ -144,11 +179,15 @@ static void cpu_exec_arithmetic (s_ckone* kone) {
 
 
 /**
- * Execute a comp command.
+ * Execute a COMP command.
  *
- * Status: L (less than), E (equal), G (greater)
+ * Affected status bits: ::SR_L, ::SR_E, ::SR_G
  */
-static void cpu_exec_comp (s_ckone* kone) {
+static void 
+cpu_exec_comp (
+        s_ckone* kone       ///< The state structure.
+        ) 
+{
     kone->sr &= ~(SR_L | SR_E | SR_G);
 
     int32_t a = kone->r[instr_first_operand (kone->ir)];
@@ -168,7 +207,11 @@ static void cpu_exec_comp (s_ckone* kone) {
  *
  * Affects: PC
  */
-static void cpu_exec_jump (s_ckone* kone) {
+static void 
+cpu_exec_jump (
+        s_ckone* kone       ///< The state structure.
+        ) 
+{
     int32_t a = kone->r[instr_first_operand (kone->ir)];
     int32_t sr = kone->sr;
     bool jump = false;
@@ -201,7 +244,8 @@ static void cpu_exec_jump (s_ckone* kone) {
  * Push PC and FP onto the stack and set FP = sp.
  *
  * Affects: MAR, MBR, Rx, FP
- * Status: M (invalid memory access)
+ *
+ * Affected status bits: ::SR_M
  */
 static void push_pc_fp (s_ckone* kone, e_register sp) {
     kone->mar = kone->r[sp] + 1;
@@ -219,7 +263,8 @@ static void push_pc_fp (s_ckone* kone, e_register sp) {
  * Pop FP and PC off the stack.
  *
  * Affects: MAR, MBR, Rx, FP
- * Status: M (invalid memory access)
+ * 
+ * Affected status bits: ::SR_M
  */
 static void pop_fp_pc (s_ckone* kone, e_register sp) {
     kone->mar = kone->r[sp];
@@ -234,24 +279,34 @@ static void pop_fp_pc (s_ckone* kone, e_register sp) {
 
 
 /**
- * Execute a call command.
+ * Execute a CALL command.
  *
  * Affects: MAR, MBR, Rx, FP, PC
- * Status: M (invalid memory access)
+ *
+ * Affected status bits: ::SR_M
  */
-static void cpu_exec_call (s_ckone* kone) {
+static void 
+cpu_exec_call (
+        s_ckone* kone       ///< The state structure.
+        ) 
+{
     push_pc_fp (kone, instr_first_operand (kone->ir));
     kone->pc = kone->tr;
 }
 
 
 /**
- * Execute an exit command.
+ * Execute an EXIT command.
  *
  * Affects: MAR, MBR, Rx, FP, PC
- * Status: M (invalid memory access)
+ *
+ * Affected status bits: ::SR_M
  */
-static void cpu_exec_exit (s_ckone* kone) {
+static void 
+cpu_exec_exit (
+        s_ckone* kone       ///< The state structure.
+        ) 
+{
     e_register sp = instr_first_operand (kone->ir);
     pop_fp_pc (kone, sp);
     kone->r[sp] -= kone->tr;    // remove parameters from stack
@@ -261,13 +316,17 @@ static void cpu_exec_exit (s_ckone* kone) {
 /**
  * Push a value onto the stack.
  *
- * @param sp The stack pointer.
- * @param value The value to push.
- *
  * Affects: MAR, MBR, Rsp
- * Status: M (invalid memory access)
+ *
+ * Affected status bits: ::SR_M
  */
-static void cpu_push_value (s_ckone* kone, e_register sp, int32_t value) {
+static void 
+cpu_push_value (
+        s_ckone* kone,      ///< The state structure.
+        e_register sp,      ///< The stack pointer.
+        int32_t value       ///< The value to push.
+        ) 
+{
     kone->mbr = value;
     kone->r[sp]++;
     kone->mar = kone->r[sp];
@@ -276,17 +335,21 @@ static void cpu_push_value (s_ckone* kone, e_register sp, int32_t value) {
 
 
 /**
- * Push a register onto the stack. It first stores the value in Rreg
- * onto the stack and then increases Rsp, so in case these are the same
- * register, the pushed value will be the original value.
- *
- * @param sp The stack pointer.
- * @param reg The register to push.
+ * Push a register (R0 to R7) onto the stack. It first stores the value 
+ * in Rreg onto the stack and then increases Rsp, so in case these are 
+ * the same register, the pushed value will be the original value.
  *
  * Affects: MAR, MBR, Rsp
- * Status: M (invalid memory access)
+ *
+ * Affected status bits: ::SR_M
  */
-static void cpu_push_register (s_ckone* kone, e_register sp, e_register reg) {
+static void 
+cpu_push_register (
+        s_ckone* kone,          ///< The state structure.
+        e_register sp,          ///< The stack pointer.
+        e_register reg          ///< The register to push.
+        ) 
+{
     cpu_push_value (kone, sp, kone->r[reg]);
 }
 
@@ -297,13 +360,17 @@ static void cpu_push_register (s_ckone* kone, e_register sp, e_register reg) {
  * in case these are the same register, the popped value will be
  * decreased by one.
  *
- * @param sp The stack pointer.
- * @param reg The register in which to store the value.
- *
  * Affects: MAR, MBR, Rsp, Rreg
- * Status: M (invalid memory access)
+ *
+ * Affected status bits: ::SR_M
  */
-static void cpu_pop_register (s_ckone* kone, e_register sp, e_register reg) {
+static void 
+cpu_pop_register (
+        s_ckone* kone,          ///< The state structure.
+        e_register sp,          ///< The stack pointer.
+        e_register reg          ///< The register to store the popped value into.
+        ) 
+{
     kone->mar = kone->r[sp];
     mmu_read (kone);
     kone->r[reg] = kone->mbr;
@@ -312,31 +379,44 @@ static void cpu_pop_register (s_ckone* kone, e_register sp, e_register reg) {
 
 
 /**
- * Execute a push command.
+ * Execute a PUSH command.
  *
- * @see cpu_push_value ()
+ * See cpu_push_value ()
  */
-static void cpu_exec_push (s_ckone* kone) {
+static void 
+cpu_exec_push (
+        s_ckone* kone       ///< The state structure.
+        ) 
+{
     cpu_push_value (kone, instr_first_operand (kone->ir), kone->tr);
 }
 
 
 /**
- * Execute a pop command.
+ * Execute a POP command.
  *
- * @see cpu_pop_register ()
+ * See cpu_pop_register ()
  */
-static void cpu_exec_pop (s_ckone* kone) {
+static void 
+cpu_exec_pop (
+        s_ckone* kone       ///< The state structure.
+        ) 
+{
     cpu_pop_register (kone, instr_first_operand (kone->ir), instr_index_reg (kone->ir));
 }
 
 
 /**
- * Execute a pushr command.
+ * Execute a PUSHR command.
  *
- * @see cpu_push_register ()
+ * Pushes the registers from R0 to R6 in order 
+ * using cpu_push_register ().
  */
-static void cpu_exec_pushr (s_ckone* kone) {
+static void 
+cpu_exec_pushr (
+        s_ckone* kone       ///< The state structure.
+        ) 
+{
     e_register sp = instr_first_operand (kone->ir);
 
     for (e_register i = R0; i <= R6; i++)
@@ -345,11 +425,16 @@ static void cpu_exec_pushr (s_ckone* kone) {
 
 
 /**
- * Execute a popr command.
+ * Execute a POPR command.
  *
- * @see cpu_pop_register ()
+ * Pops the registers from R6 to R0 in order 
+ * using cpu_pop_register ().
  */
-static void cpu_exec_popr (s_ckone* kone) {
+static void 
+cpu_exec_popr (
+        s_ckone* kone       ///< The state structure.
+        ) 
+{
     e_register sp = instr_first_operand (kone->ir);
 
     for (e_register i = R0; i <= R6; i--)
@@ -358,12 +443,18 @@ static void cpu_exec_popr (s_ckone* kone) {
 
 
 /**
- * Execute a svc command.
+ * Execute a SVC command.
+ * See ext_svc ().
  *
  * Affects: MAR, MBR, Rx, FP
- * Status: M (invalid memory access)
+ *
+ * Affected status bits: ::SR_M
  */
-static void cpu_exec_svc (s_ckone* kone) {
+static void 
+cpu_exec_svc (
+        s_ckone* kone       ///< The state structure.
+        ) 
+{
     e_register sp = instr_first_operand (kone->ir);
     push_pc_fp (kone, sp);
     DLOG ("FP is now 0x%x\n", kone->r[FP]);
@@ -378,10 +469,14 @@ static void cpu_exec_svc (s_ckone* kone) {
 
 
 /**
- * Executes the current instruction. Assumes that the instruction has been
+ * Execute the current instruction. Assumes that the instruction has been
  * fetched and the second operand has been calculated and stored into TR.
  */
-static void cpu_execute_instruction (s_ckone* kone) {
+static void 
+cpu_execute_instruction (
+        s_ckone* kone       ///< The state structure.
+        ) 
+{
     e_opcode op = instr_opcode (kone->ir);
     if (op == NOP)
         ;   // nothing
@@ -417,10 +512,16 @@ static void cpu_execute_instruction (s_ckone* kone) {
 
 
 /**
- * Fetch the next instruction, calculate its second operand, and
- * execute it.
+ * Perform one execution cycle. Fetch the next instruction, 
+ * calculate its second operand, and execute it.
+ *
+ * @return True if everything succeeded.
  */
-bool cpu_step (s_ckone* kone) {
+bool 
+cpu_step (
+        s_ckone* kone       ///< The state structure.
+        ) 
+{
     cpu_fetch_instr (kone);
     if (kone->sr & SR_M)
         return false;

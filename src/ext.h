@@ -2,8 +2,7 @@
 #define EXT_H
 
 
-#include "ckone.h"
-
+struct s_ckone;
 
 extern void ext_in (s_ckone* kone);
 extern void ext_out (s_ckone* kone);

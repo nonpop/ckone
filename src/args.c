@@ -1,3 +1,11 @@
+/**
+ * @file args.c
+ *
+ * Command line argument parsing code. Uses the Argp interface, which
+ * is part of the GNU C Library.
+ */
+
+
 #include <stdlib.h>
 #include <argp.h>
 #include "args.h"
@@ -5,13 +13,17 @@
 #include "ckone.h"
 
 
+/**
+ * The global options structure.
+ */
 s_arguments args;
 
 
+/// @cond private
 const char* argp_program_version = VERSION;
 
 static char doc[] = 
-"ckone -- a TitoKone emulator\v"
+"ckone -- a ttk-91 emulator\v"
 "If the program file is -, the program is read from the standard input\n"
 "The stdin and stdout options override settings defined in the program file.\n";
 
@@ -21,6 +33,7 @@ static char args_doc[] = "PROGRAM_FILE";
 // a little trick to get an integer constant converted to a string constant
 #define STR_(i) #i
 #define STR(i) STR_(i) 
+
 
 static struct argp_option options[] = {
     { "stdin",          'i',    "INFILE",   0, "Use INFILE as the STDIN device", 0 },
@@ -37,8 +50,17 @@ static struct argp_option options[] = {
     { 0, 0, 0, 0, 0, 0 }
 };
 
+
+/**
+ * The option parser. Used by Argp.
+ */
 static error_t
-parse_opt (int key, char* arg, struct argp_state *state) {
+parse_opt (
+        int key,                    ///< Argument type.
+        char* arg,                  ///< Argument value.
+        struct argp_state *state    ///< Parser state.
+        ) 
+{
     s_arguments* arguments = state->input;
 
     switch (key) {
@@ -97,12 +119,33 @@ parse_opt (int key, char* arg, struct argp_state *state) {
 static struct argp argp = { options, parse_opt, args_doc, doc, 0, 0, 0 };
 
 
-static char* bool_to_yesno (bool value) {
+/**
+ * Convert a boolean to a "yes" or "no" string.
+ *
+ * @return A "yes" or "no" string.
+ */
+static char* 
+bool_to_yesno (
+        bool value      ///< The value to convert.
+        ) 
+{
     return value? "yes" : "no";
 }
 
+/// @endcond
 
-bool parse_args (int argc, char** argv) {
+
+/**
+ * Parse and validate the command line arguments.
+ *
+ * @return True if the parsing and validation succeeded.
+ */
+bool parse_args (
+        int argc,       ///< The size of the argv array.
+        char** argv     ///< The actual arguments.
+        ) 
+{
+    // Initialize the options structure.
     args.stdin_file = NULL;
     args.stdout_file = NULL;
     args.mem_size = DEFAULT_MEM_SIZE;
@@ -116,6 +159,7 @@ bool parse_args (int argc, char** argv) {
     args.program = NULL;
     args.include_symtable = false;
 
+    // Parse
     argp_parse (&argp, argc, argv, 0, 0, &args);
 
     DLOG ("stdin_file = %s\n", args.stdin_file);
@@ -132,6 +176,8 @@ bool parse_args (int argc, char** argv) {
     DLOG ("include_symtable = %s\n", bool_to_yesno (args.include_symtable));
 
 
+    // Validate the arguments.
+    
     if (args.mem_size <= 0) {
         ELOG ("mem_size must be positive\n", 0);
         return false;

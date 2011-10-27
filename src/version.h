@@ -1,2 +1,3 @@
-#define VERSION "ckone 0.8"
+/// The version string
+#define VERSION "ckone 0.9"
 

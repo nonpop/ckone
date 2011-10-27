@@ -2,11 +2,9 @@
 #define CPU_H
 
 
-#include "ckone.h"
-
+struct s_ckone;
 
 extern bool cpu_step (s_ckone* kone);
-extern void cpu_reset (s_ckone* kone);
 
 
 #endif

@@ -1,3 +1,14 @@
+/**
+ * @file ext.c
+ *
+ * Implements operations involving the external world.
+ * These operations are IN, OUT, and SVC.
+ *
+ * Calls functions from mmu.c to read and write memory, and
+ * from instr.c to decode instructions.
+ */
+
+
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
@@ -7,19 +18,38 @@
 #include "args.h"
 
 
+/// @cond private
+/**
+ * A structure containing information about a device.
+ */
 typedef struct {
-    int num;
-    char* name;
-    FILE* file;
-    bool is_input;
+    int num;        ///< The device number.
+    char* name;     ///< The device name.
+    FILE* file;     ///< The file where the device reads/writes data from/to.
+    bool is_input;  ///< True if this device is an input device, false
+                    ///< if it is an output device.
 } s_device;
 
 
-enum {
-    CRT = 0, KBD = 1, STDIN = 6, STDOUT = 7
+/**
+ * The available device numbers.
+ */
+enum e_device_number {
+    CRT = 0,        ///< The display device. Always stdout.
+    KBD = 1,        ///< The keyboard device. Always stdin.
+    STDIN = 6,      ///< The STDIN device. The file for this can be defined
+                    ///< in the program file and overridden with a command
+                    ///< line argument.
+    STDOUT = 7      ///< The STDOUT device. The file for this can be defined
+                    ///< in the program file and overridden with a command
+                    ///< line argument.
 };
 
 
+/**
+ * The available devices. This must be initialized with
+ * ext_init_devices () before starting the emulation.
+ */
 static s_device devices[] = {
     { 0, "CRT", NULL, false },
     { 1, "KBD", NULL, true },
@@ -28,13 +58,20 @@ static s_device devices[] = {
     { -1, "(Unknown)", NULL, false },
 };
 
+/// @endcond
+
 
 /**
  * Initialize the external devices. CRT is will be stdout and
- * KBD will be stdin. The values in the args structure define
- * the STDIN and STDOUT devices.
+ * KBD will be stdin. The values in the ::args structure define
+ * the STDIN and STDOUT devices. This must be called before
+ * emulation is started. See also ext_close_devices ().
  */
-void ext_init_devices () {
+void 
+ext_init_devices (
+        void
+        ) 
+{
     ILOG ("Initializing external devices...\n", 0);
     devices[0].file = stdout;
     devices[1].file = stdin;
@@ -61,13 +98,32 @@ void ext_init_devices () {
 
 
 /**
+ * Close the files for the external devices. See ext_init_devices ().
+ */
+void 
+ext_close_devices (
+        void
+        ) 
+{
+    ILOG ("Closing external devices...\n", 0);
+    if (devices[2].file)
+        fclose (devices[2].file);
+    if (devices[3].file)
+        fclose (devices[3].file);
+}
+
+
+/**
  * Read an integer from the given file. If the file is stdin,
  * it also prints a prompt.
  *
- * @param in The input file.
  * @return The integer read.
  */
-static int32_t read_input (FILE* in) {
+static int32_t 
+read_input (
+        FILE* in        ///< The input file.
+        ) 
+{
     if (in == stdin)
         printf ("Enter an integer: ");
 
@@ -93,12 +149,14 @@ static int32_t read_input (FILE* in) {
 
 /**
  * Write an integer to the given file. If the file is stdout,
- * it also prints a prefix thing.
- *
- * @param out The output file.
- * @param value The value to write.
+ * it also prints a prefix telling where the value came from.
  */
-static void write_output (FILE* out, uint32_t value) {
+static void 
+write_output (
+        FILE* out,      ///< The output file.
+        uint32_t value  ///< The value to write.
+        ) 
+{
     if (out == stdout)
         printf ("Program outputted: ");
 
@@ -109,10 +167,13 @@ static void write_output (FILE* out, uint32_t value) {
 /**
  * Get data for the given device.
  *
- * @param dev_num The device number.
  * @return The device data. NULL if the device does not exist.
  */
-static s_device* get_device (int32_t dev_num) {
+static s_device* 
+get_device (
+        int32_t dev_num     ///< The device number.
+        ) 
+{
     DLOG ("Finding device %d...\n", dev_num);
 
     for (unsigned int i = 0; i < sizeof(devices)/sizeof(s_device); i++) {
@@ -129,10 +190,13 @@ static s_device* get_device (int32_t dev_num) {
 /**
  * Get the name of a device.
  *
- * @param dev_num The device number.
  * @return The name of the device.
  */
-static const char* get_device_name (uint32_t dev_num) {
+static const char* 
+get_device_name (
+        uint32_t dev_num        ///< The device number.
+        ) 
+{
     s_device* dev = get_device (dev_num);
     if (!dev)
         return "(Unknown)";
@@ -144,12 +208,15 @@ static const char* get_device_name (uint32_t dev_num) {
 /**
  * Get the file of a device.
  *
- * @param dev_num The device number.
- * @param input Whether the device should be an input device or not.
  * @return The device file. NULL if the device does not exist or if
- * it's of the wrong type (input vs. output)
+ *         it's of the wrong type (input vs. output).
  */
-static FILE* get_device_file (uint32_t dev_num, bool input) {
+static FILE* 
+get_device_file (
+        uint32_t dev_num,   ///< The device number.
+        bool input          ///< True if an input device is requested.
+        ) 
+{
     s_device* dev = get_device (dev_num);
     if (dev == NULL)
         return NULL;
@@ -172,9 +239,14 @@ static FILE* get_device_file (uint32_t dev_num, bool input) {
  * result in the first operand register.
  * 
  * Affects: Rx
- * Status: M (invalid device)
+ *
+ * Affected status bits: ::SR_M
  */
-void ext_in (s_ckone* kone) {
+void 
+ext_in (
+        s_ckone* kone       ///< The state structure.
+        ) 
+{
     DLOG ("Reading input from device %d...\n", kone->tr);
 
     FILE* f = get_device_file (kone->tr, true);
@@ -194,9 +266,13 @@ void ext_in (s_ckone* kone) {
  * Writes the value in the current instruction's first operand
  * register to the device denoted in TR.
  *
- * Status: M (invalid device)
+ * Affected status bits: ::SR_M
  */
-void ext_out (s_ckone* kone) {
+void 
+ext_out (
+        s_ckone* kone       ///< The state structure.
+        ) 
+{
     DLOG ("Writing output to device %d...\n", kone->tr);
 
     FILE* f = get_device_file (kone->tr, false);
@@ -215,9 +291,15 @@ void ext_out (s_ckone* kone) {
 /**
  * Halts the machine.
  *
+ * @return The number of arguments for this SVC, which is 0.
+ *
  * Affects: halted
  */
-static int32_t svc_halt (s_ckone* kone) {
+static int32_t 
+svc_halt (
+        s_ckone* kone       ///< The state structure.
+        ) 
+{
     DLOG ("SVC HALT\n", 0);
     kone->halted = true;
     ILOG ("Halted.\n", 0);
@@ -229,16 +311,22 @@ static int32_t svc_halt (s_ckone* kone) {
  * Read a value from KBD and store it to the location given
  * on the stack.
  *
- * NOTE: At least TitoKone 1.203 seems to have a bug here which
+ * @note At least TitoKone 1.203 seems to have a bug here which
  * causes READ to take two arguments and ignore the second one.
  * This can be emulated using the --emulate-bugs flag.
  *
- * @return How many arguments to pop.
+ * @return The number of arguments for this SVC, which is 1
+ *         normally, or 2 if bugs are emulated.
  *
  * Affects: MAR, MBR
- * Status: M (invalid memory access)
+ *
+ * Affected status bits: ::SR_M
  */
-static int32_t svc_read (s_ckone* kone) {
+static int32_t 
+svc_read (
+        s_ckone* kone       ///< The state structure.
+        ) 
+{
     DLOG ("SVC READ\n", 0);
     FILE* f = get_device_file (KBD, true);
     if (!f) {
@@ -263,12 +351,17 @@ static int32_t svc_read (s_ckone* kone) {
 /**
  * Write a value given on the stack to CRT.
  *
- * @return How many arguments to pop.
+ * @return The number of arguments for this SVC, which is 1.
  *
  * Affects: MAR, MBR
- * Status: M (invalid memory access)
+ *
+ * Affected status bits: ::SR_M
  */
-static int32_t svc_write (s_ckone* kone) {
+static int32_t 
+svc_write (
+        s_ckone* kone       ///< The state structure.
+        ) 
+{
     DLOG ("SVC WRITE\n", 0);
     FILE* f = get_device_file (CRT, false);
     if (!f) {
@@ -287,12 +380,17 @@ static int32_t svc_write (s_ckone* kone) {
 /**
  * Get the current time and store it to the locations given on the stack.
  *
- * @return How many arguments to pop.
+ * @return The number of arguments for this SVC, which is 3.
  *
  * Affects: MAR, MBR
- * Status: M (invalid memory access)
+ *
+ * Affected status bits: ::SR_M
  */
-static int32_t svc_time (s_ckone* kone) {
+static int32_t 
+svc_time (
+        s_ckone* kone       ///< The state structure.
+        ) 
+{
     DLOG ("SVC TIME\n", 0);
     time_t now = time (NULL);
     struct tm* t = localtime (&now);
@@ -327,12 +425,17 @@ static int32_t svc_time (s_ckone* kone) {
  * NOTE: At least TitoKone 1.203 seems to report the month as one too small.
  * This can be replicated using the --emulate-bugs flag.
  *
- * @return How many arguments to pop.
+ * @return How The number of arguments for this SVC, which is 3.
  *
  * Affects: MAR, MBR
- * Status: M (invalid memory access)
+ *
+ * Affected status bits: ::SR_M
  */
-static int32_t svc_date (s_ckone* kone) {
+static int32_t 
+svc_date (
+        s_ckone* kone       ///< The state structure.
+        ) 
+{
     DLOG ("SVC DATE\n", 0);
     time_t now = time (NULL);
     struct tm* t = localtime (&now);
@@ -364,10 +467,13 @@ static int32_t svc_date (s_ckone* kone) {
 /**
  * Execute an svc command.
  *
- * @return How many arguments to pop.
+ * @return The number of arguments for the SVC.
  *
- * Affects: Rx, MAR, MBR, halted
- * Status: M (invalid memory access, invalid device)
+ * Affects:
+ *  - halted (HALT)
+ *  - MAR, MBR (the rest)
+ *
+ * Affected status bits: ::SR_M (not HALT)
  */
 int32_t ext_svc (s_ckone* kone) {
     switch (kone->tr) {

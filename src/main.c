@@ -1,3 +1,10 @@
+/**
+ * @file main.c
+ *
+ * The program entry point.
+ */
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,11 +17,17 @@ extern bool parse_args (int argc, char** argv);
 extern bool ckone_init (s_ckone* kone);
 extern bool ckone_load (s_ckone* kone, FILE* input);
 extern int ckone_run (s_ckone* kone);
+extern void ckone_free (s_ckone* kone);
 extern void ext_init_devices ();
+extern void ext_close_devices ();
 
 
 int main (int argc, char** argv) {
     if (!parse_args (argc, argv))
+        return EXIT_FAILURE;
+
+    s_ckone kone;
+    if (!ckone_init (&kone))
         return EXIT_FAILURE;
 
     FILE* program_file = NULL;
@@ -31,14 +44,15 @@ int main (int argc, char** argv) {
         return EXIT_FAILURE;
     }
 
-    s_ckone kone;
-    if (!ckone_init (&kone))
-        return EXIT_FAILURE;
-
     if (!ckone_load (&kone, program_file))
         return EXIT_FAILURE;
 
     ext_init_devices ();
-    return ckone_run (&kone);
+    int retval = ckone_run (&kone);
+
+    ext_close_devices ();
+    ckone_free (&kone);
+
+    return retval;
 }
 

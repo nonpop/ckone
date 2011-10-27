@@ -4,9 +4,13 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include "ckone.h"
+
+struct s_ckone;
 
 
+/**
+ * All available operation codes.
+ */
 typedef enum {
     NOP = 0x00,
     STORE = 0x01, LOAD, IN, OUT,
@@ -20,12 +24,18 @@ typedef enum {
 } e_opcode;
 
 
+/**
+ * The available addressing modes. The instruction's constant part and
+ * the value of the instruction's index register (C + I) define the second
+ * operand of the instruction in the following ways.
+ */
 typedef enum {
-    IMMEDIATE = 0, DIRECT = 1, INDIRECT = 2,
+    IMMEDIATE = 0,      ///< C + I = second operand.
+    DIRECT = 1,         ///< C + I = location of the second operand.
+    INDIRECT = 2,       ///< C + I = pointer to the location of the second operand.
 } e_addr_mode;
 
 
-//extern const char* op_name (e_opcode opcode);
 extern e_opcode instr_opcode (int32_t instr);
 extern e_register instr_first_operand (int32_t instr);
 extern e_addr_mode instr_addr_mode (int32_t instr);

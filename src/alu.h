@@ -2,8 +2,7 @@
 #define ALU_H
 
 
-#include "ckone.h"
-
+struct s_ckone;
 
 extern void alu_add (s_ckone* kone);
 extern void alu_sub (s_ckone* kone);

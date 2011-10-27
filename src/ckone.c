@@ -1,3 +1,10 @@
+/**
+ * @file ckone.c
+ *
+ * Contains code to initialize and run the emulator.
+ */
+
+
 #include <stdlib.h>
 #include <string.h>
 #include "ckone.h"
@@ -9,12 +16,16 @@
 
 /**
  * Initializes the ckone. Allocates memory and resets the CPU.
- * If the clean flag is set, it will also zero all memory and
- * registers.
+ * If the clean flag (see ::args) is set, it will also zero all 
+ * memory and registers. See also ckone_free().
  *
  * @return True if successful, false otherwise.
  */
-bool ckone_init (s_ckone* kone) {
+bool 
+ckone_init (
+        s_ckone* kone       ///< The state structure.
+        ) 
+{
     DLOG ("Initializing the ckone structure...\n", 0);
     if (args.clean) {
         ILOG ("Zeroing state structure...\n", 0);
@@ -38,13 +49,25 @@ bool ckone_init (s_ckone* kone) {
     kone->mmu_base = args.mmu_base;
     kone->mmu_limit = args.mmu_limit;
 
-    cpu_reset (kone);
+    kone->pc = 0;
+    kone->sr = 0;
+    kone->halted = false;
 
     return true;
 }
 
 
-static char* read_line (FILE* input, int* linenum) {
+/**
+ * Read a line from the given file. Also update the line number variable.
+ *
+ * @return The line read, or NULL if there was an error.
+ */
+static char* 
+read_line (
+        FILE* input,        ///< The file to read from.
+        int* linenum        ///< A pointer to the line number counter.
+        ) 
+{
     static char buf[1024];
     if (!fgets (buf, sizeof(buf), input)) {
         ELOG ("Failed to read from program file\n", 0);
@@ -57,23 +80,32 @@ static char* read_line (FILE* input, int* linenum) {
 
 
 /**
- * Load a program into memory.
+ * Load a program into memory. Also sets FP and SP to match the
+ * end of the code segment and the data segment respectively.
+ * See also ckone_free().
  *
  * @param input The input file.
  * @return True if successful, false otherwise.
  */
-bool ckone_load (s_ckone* kone, FILE* input) {
+bool 
+ckone_load (
+        s_ckone* kone,      ///< The state structure.
+        FILE* input         ///< The input file.
+        ) 
+{
     DLOG ("Reading the program file...\n", 0);
 
     int linenum = 0;
     char* line;
 
+    /// @cond private
     // little macros to make things easier to read
 #define READ_CHECK() if (!(line = read_line (input, &linenum))) return false
 #define EXPECTED(what) { \
     ELOG ("Expected " what " at line %d but got %s\n", linenum, line); \
     return false; \
 }
+    /// @endcond
 
     // header
     READ_CHECK ();
@@ -157,7 +189,34 @@ bool ckone_load (s_ckone* kone, FILE* input) {
 }
 
 
-void ckone_dump_memory (s_ckone* kone) {
+/**
+ * Frees all memory allocated by ckone_init() and ckone_load().
+ */
+void 
+ckone_free (
+        s_ckone* kone       ///< The state structure.
+        ) 
+{
+    symtable_clear ();
+
+    if (kone->mem)
+        free (kone->mem);
+
+    kone->mem = NULL;
+    kone->mem_size = 0;
+    kone->mmu_limit = 0;
+}
+
+
+/**
+ * Print the contents of the emulator memory. The number of columns
+ * is determined by a command line argument.
+ */
+static void 
+ckone_dump_memory (
+        s_ckone* kone       ///< The state structure.
+        ) 
+{
     unsigned int cols = args.mem_cols;
 
     printf ("Memory size: %d words, MMU base: 0x%08x, MMU limit: %d words\n",
@@ -187,12 +246,26 @@ void ckone_dump_memory (s_ckone* kone) {
 }
 
 
-void print_hex_dec (int32_t value) {
+/**
+ * Print a number in both hexadecimal and decimal formats.
+ */
+static void 
+print_hex_dec (
+        int32_t value       ///< The value to print.
+        ) 
+{
     printf("0x%08x (%11d)", value, value);
 }
 
 
-void ckone_dump_registers (s_ckone* kone) {
+/**
+ * Print the contents of the registers.
+ */
+static void 
+ckone_dump_registers (
+        s_ckone* kone       ///< The state structure.
+        ) 
+{
     printf ("Registers:\n");
     for (e_register r = R0; r <= R7; r++) {
         if (r < 6)
@@ -232,7 +305,17 @@ void ckone_dump_registers (s_ckone* kone) {
 }
 
 
-void ckone_dump (s_ckone* kone) {
+/**
+ * Print the current state. Prints the registers, the
+ * next instruction (if in stepping mode), the symbol
+ * table (if enabled by a command line argument), and
+ * the memory contents.
+ */
+static void 
+ckone_dump (
+        s_ckone* kone           ///< The state structure.
+        ) 
+{
     printf ("\nCurrent state:\n\n");
     ckone_dump_registers (kone);
     if (args.step) {
@@ -253,7 +336,15 @@ void ckone_dump (s_ckone* kone) {
 }
 
 
-static bool pause () {
+/**
+ * Pause execution after an instruction. The user can either continue
+ * to the next instruction, show the symbol table, or quit.
+ */
+static bool 
+pause (
+        void
+        ) 
+{
     while (true) {
         printf ("Type enter to execute the next instruction, \"s\" to show\n"
                 "the symbol table, or \"q\" to quit: \n");
@@ -276,7 +367,18 @@ static bool pause () {
 }
 
 
-int ckone_run (s_ckone* kone) {
+/**
+ * Start emulation. The emulation will run until an error occurs
+ * or the CPU halts. If stepping mode is on, the emulation will pause
+ * between every instruction.
+ *
+ * @return EXIT_FAILURE if something went wrong, EXIT_SUCCESS otherwise.
+ */
+int 
+ckone_run (
+        s_ckone* kone       ///< The state structure.
+        ) 
+{
     ILOG ("Running program...\n", 0);
     if (args.step) {
         ckone_dump (kone);

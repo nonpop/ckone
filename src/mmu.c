@@ -1,8 +1,7 @@
 /**
- * @file
+ * @file mmu.c
  *
- * @section DESCRIPTION
- * This contains functions which simulate the operations of the MMU.
+ * Contains code which emulates the MMU.
  */
 
 
@@ -12,22 +11,31 @@
 /**
  * Calculate the physical address of the given logical address.
  *
- * @param laddr The logical address (i.e. relative to mmu_base)
- * @return The physical address (i.e. absolute address)
+ * @return The physical (i.e. absolute) address.
  */
-static uint32_t calculate_paddr (s_ckone* kone, uint32_t laddr) {
+static uint32_t 
+calculate_paddr (
+        s_ckone* kone,      ///< The state structure.
+        uint32_t laddr      ///< The logical address.
+        ) 
+{
     return kone->mmu_base + laddr;
 }
 
 
 /**
- * Check if the given physical address is valid.
+ * Check if the given physical address is within the
+ * limits of MMU_BASE and MMU_LIMIT.
  *
- * @param paddr The physical address.
  * @return true if the address can be accessed.
  */
 
-static bool valid_paddr (s_ckone* kone, int32_t paddr) {
+static bool 
+valid_paddr (
+        s_ckone* kone,      ///< The state structure.
+        int32_t paddr       ///< The physical address.
+        ) 
+{
     return paddr >= kone->mmu_base && paddr < kone->mmu_base + kone->mmu_limit;
 }
 
@@ -36,12 +44,17 @@ static bool valid_paddr (s_ckone* kone, int32_t paddr) {
  * Read a word from memory.
  *
  * Calculates the physical address for MAR and reads data from
- * that memory address to MBR.
+ * that memory address into MBR.
  *
  * Affects: MBR
- * Status: M (the physical address is outside the memory limits)
+ *
+ * Affected status bits: ::SR_M
  */
-void mmu_read (s_ckone* kone) {
+void 
+mmu_read (
+        s_ckone* kone       ///< The state structure.
+        ) 
+{
     int32_t paddr = calculate_paddr (kone, kone->mar);
 
     if (!valid_paddr (kone, paddr)) {
@@ -63,9 +76,13 @@ void mmu_read (s_ckone* kone) {
  * Calculates the physical address for MAR and writes the contents of
  * MBR to that memory address.
  *
- * Status: M (the physical address is outside the memory limits)
+ * Affected status bits: ::SR_M
  */
-void mmu_write (s_ckone* kone) {
+void 
+mmu_write (
+        s_ckone* kone       ///< The state structure.
+        ) 
+{
     int32_t paddr = calculate_paddr (kone, kone->mar);
 
     if (!valid_paddr (kone, paddr)) {
