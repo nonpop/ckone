@@ -16,7 +16,7 @@ stack   ds 60               ; 12! is the biggest we can calculate, so this shoul
         
 fail    load r1, =-1        ; output -1 to indicate invalid input
 end     out r1, =crt        ; output the result
-        svc sp, =halt       ; halt
+        svc sp, =halt
 
 
 ; the recursive factorial subroutine
@@ -33,6 +33,6 @@ fac_cont push sp, r1        ; save n
         push sp, r1
         call sp, fac        ; calculate (n-1)!
         pop sp, r2          ; r2 = n
-        mul r1, r2          ; r1 = n * (n-1)!
+        mul r1, r2          ; r1 = (n-1)! * n
         exit sp, =1
 

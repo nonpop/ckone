@@ -56,7 +56,7 @@ bool symtable_insert (char* name, char* value) {
 }
 
 
-s_symtable* find_symbol (char* name) {
+static s_symtable* find_symbol (char* name) {
     for (s_symtable* s = symtable; s; s = s->next)
         if (!strcmp (s->name, name))
             return s;

@@ -4,6 +4,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include "ckone.h"
 
 
 typedef enum {
@@ -20,16 +21,11 @@ typedef enum {
 
 
 typedef enum {
-    R0 = 0, R1, R2, R3, R4, R5, R6, R7, SP = 6, FP = 7
-} e_register;
-
-
-typedef enum {
     IMMEDIATE = 0, DIRECT = 1, INDIRECT = 2,
 } e_addr_mode;
 
 
-extern const char* op_name (e_opcode opcode);
+//extern const char* op_name (e_opcode opcode);
 extern e_opcode instr_opcode (int32_t instr);
 extern e_register instr_first_operand (int32_t instr);
 extern e_addr_mode instr_addr_mode (int32_t instr);

@@ -157,8 +157,10 @@ bool parse_args (int argc, char** argv) {
         return false;
     }
 
-    if (args.verbosity > 2)
+    if (args.verbosity > 2) {
         args.verbosity = 2;
+        ILOG ("Verbosity limited to 2\n", 0);
+    }
 
     return true;
 }

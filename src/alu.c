@@ -14,7 +14,7 @@ typedef enum {
  * whether the result overflows, and set the overflow bit
  * of SR if it does.
  */
-void do_and_check (s_ckone* kone, e_op op) {
+static void do_and_check (s_ckone* kone, e_op op) {
     int32_t a = kone->alu_in1;
     int32_t b = kone->alu_in2;
 
@@ -42,66 +42,92 @@ void do_and_check (s_ckone* kone, e_op op) {
 }
 
 
+// Macros for debugging output
+#define MSG(op) DLOG ("Calculating 0x%x " op " 0x%x (%d + %d)\n", \
+        kone->alu_in1, kone->alu_in2, kone->alu_in1, kone->alu_in2);
+#define RES() DLOG ("Result = 0x%x (%d)\n", kone->alu_out, kone->alu_out)
+
 void alu_add (s_ckone* kone) {
+    MSG ("+");
     do_and_check (kone, ADD);
+    RES ();
 }
 
 
 void alu_sub (s_ckone* kone) {
+    MSG ("-");
     do_and_check (kone, SUB);
+    RES ();
 } 
 
 
 void alu_mul (s_ckone* kone) {
+    MSG ("*");
     do_and_check (kone, MUL);
+    RES ();
 }
 
 
 void alu_div (s_ckone* kone) {
+    MSG ("/");
     if (kone->alu_in2 == 0) {
         kone->sr |= SR_Z;
         return;
     }
 
     kone->alu_out = kone->alu_in1 / kone->alu_in2;
+    RES ();
 }
 
 
 void alu_mod (s_ckone* kone) {
+    MSG ("%%");
     if (kone->alu_in2 == 0) {
         kone->sr |= SR_Z;
         return;
     }
 
     kone->alu_out = kone->alu_in1 % kone->alu_in2;
+    RES ();
 }
 
 
 void alu_and (s_ckone* kone) {
+    MSG ("&");
     kone->alu_out = kone->alu_in1 & kone->alu_in2;
+    RES ();
 }
 
 
 void alu_or (s_ckone* kone) {
+    MSG ("|");
     kone->alu_out = kone->alu_in1 | kone->alu_in2;
+    RES ();
 }
 
 
 void alu_xor (s_ckone* kone) {
+    MSG ("^");
     kone->alu_out = kone->alu_in1 ^ kone->alu_in2;
+    RES ();
 }
 
 
 void alu_not (s_ckone* kone) {
+    DLOG ("Calculating ~0x%x (~%d)\n", kone->alu_in1, kone->alu_in1);
     kone->alu_out = ~kone->alu_in1;
+    RES ();
 }
 
 
 void alu_shl (s_ckone* kone) {
+    MSG ("SHL");
     kone->alu_out = kone->alu_in1 << kone->alu_in2;
+    RES ();
 }
 
 void alu_shr (s_ckone* kone) {
+    MSG ("SHR");
     kone->alu_out = kone->alu_in1 >> kone->alu_in2;
 
     if (kone->alu_in2 > 0) {
@@ -109,10 +135,13 @@ void alu_shr (s_ckone* kone) {
         sign_bits >>= (kone->alu_in2 - 1);
         kone->alu_out ^= sign_bits;
     }
+    RES ();
 }
 
 
 void alu_shra (s_ckone* kone) {
+    MSG ("SHRA");
     kone->alu_out = kone->alu_in1 >> kone->alu_in2;
+    RES ();
 }
 

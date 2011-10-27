@@ -13,6 +13,7 @@
  * Status: M (invalid memory access)
  */
 void cpu_fetch_instr (s_ckone* kone) {
+    DLOG ("Fetching instruction...\n", 0);
     kone->mar = kone->pc++;
     mmu_read (kone);
     kone->ir = kone->mbr;
@@ -28,6 +29,7 @@ void cpu_fetch_instr (s_ckone* kone) {
  *         U (invalid addressing mode)
  */
 void cpu_calculate_second_operand (s_ckone* kone) {
+    DLOG ("Calculating second operand...\n", 0);
     // calculate the first address
     kone->alu_in1 = instr_addr (kone->ir);
 
@@ -41,7 +43,7 @@ void cpu_calculate_second_operand (s_ckone* kone) {
         return;
 
     kone->tr = kone->alu_out;
-    
+
     
     // perform the memory fetches
     int mem_fetches = 0;
@@ -55,16 +57,18 @@ void cpu_calculate_second_operand (s_ckone* kone) {
             return;
     }
 
-    while (mem_fetches-- > 0) {
+    DLOG ("Second operand 1/%d: 0x%x (%d)\n", mem_fetches+1, kone->tr, kone->tr);
+    
+    for (int i = 0; i < mem_fetches; i++) {
         kone->mar = kone->tr;
         mmu_read (kone);
         if (kone->sr & SR_M)
             return;
 
         kone->tr = kone->mbr;
+        DLOG ("Second operand %d/%d: 0x%x (%d)\n", 
+                i+2, mem_fetches+1, kone->tr, kone->tr);
     }
-
-    DLOG ("The second operand is: 0x%x\n", kone->tr);
 }
 
 
@@ -76,6 +80,7 @@ void cpu_reset (s_ckone* kone) {
     kone->sr = 0;
     kone->pc = 0;
     kone->halted = false;
+    ILOG ("CPU reset.\n", 0);
 }
 
 
@@ -85,7 +90,7 @@ void cpu_reset (s_ckone* kone) {
  * Affects: MAR, MBR, Rx
  * Status: M (invalid memory access)
  */
-void cpu_exec_store_load (s_ckone* kone) {
+static void cpu_exec_store_load (s_ckone* kone) {
     if (instr_opcode (kone->ir) == STORE) {
         kone->mar = kone->tr;
         kone->mbr = kone->r[instr_first_operand (kone->ir)];
@@ -96,7 +101,7 @@ void cpu_exec_store_load (s_ckone* kone) {
 }
 
 
-void cpu_exec_in_out (s_ckone* kone) {
+static void cpu_exec_in_out (s_ckone* kone) {
     if (instr_opcode (kone->ir) == IN) {
         ext_in (kone);
     } else {
@@ -111,7 +116,7 @@ void cpu_exec_in_out (s_ckone* kone) {
  * Affects: ALU_IN1, ALU_IN2, ALU_OUT, Rx
  * Status: O (overflow), Z (division by zero
  */
-void cpu_exec_arithmetic (s_ckone* kone) {
+static void cpu_exec_arithmetic (s_ckone* kone) {
     kone->alu_in1 = kone->r[instr_first_operand (kone->ir)];
     kone->alu_in2 = kone->tr;
 
@@ -143,7 +148,7 @@ void cpu_exec_arithmetic (s_ckone* kone) {
  *
  * Status: L (less than), E (equal), G (greater)
  */
-void cpu_exec_comp (s_ckone* kone) {
+static void cpu_exec_comp (s_ckone* kone) {
     kone->sr &= ~(SR_L | SR_E | SR_G);
 
     int32_t a = kone->r[instr_first_operand (kone->ir)];
@@ -163,7 +168,7 @@ void cpu_exec_comp (s_ckone* kone) {
  *
  * Affects: PC
  */
-void cpu_exec_jump (s_ckone* kone) {
+static void cpu_exec_jump (s_ckone* kone) {
     int32_t a = kone->r[instr_first_operand (kone->ir)];
     int32_t sr = kone->sr;
     bool jump = false;
@@ -198,7 +203,7 @@ void cpu_exec_jump (s_ckone* kone) {
  * Affects: MAR, MBR, Rx, FP
  * Status: M (invalid memory access)
  */
-void push_pc_fp (s_ckone* kone, e_register sp) {
+static void push_pc_fp (s_ckone* kone, e_register sp) {
     kone->mar = kone->r[sp] + 1;
     kone->mbr = kone->pc;
     mmu_write (kone);
@@ -216,7 +221,7 @@ void push_pc_fp (s_ckone* kone, e_register sp) {
  * Affects: MAR, MBR, Rx, FP
  * Status: M (invalid memory access)
  */
-void pop_fp_pc (s_ckone* kone, e_register sp) {
+static void pop_fp_pc (s_ckone* kone, e_register sp) {
     kone->mar = kone->r[sp];
     mmu_read (kone);
     int32_t fp = kone->mbr;
@@ -234,7 +239,7 @@ void pop_fp_pc (s_ckone* kone, e_register sp) {
  * Affects: MAR, MBR, Rx, FP, PC
  * Status: M (invalid memory access)
  */
-void cpu_exec_call (s_ckone* kone) {
+static void cpu_exec_call (s_ckone* kone) {
     push_pc_fp (kone, instr_first_operand (kone->ir));
     kone->pc = kone->tr;
 }
@@ -246,7 +251,7 @@ void cpu_exec_call (s_ckone* kone) {
  * Affects: MAR, MBR, Rx, FP, PC
  * Status: M (invalid memory access)
  */
-void cpu_exec_exit (s_ckone* kone) {
+static void cpu_exec_exit (s_ckone* kone) {
     e_register sp = instr_first_operand (kone->ir);
     pop_fp_pc (kone, sp);
     kone->r[sp] -= kone->tr;    // remove parameters from stack
@@ -262,7 +267,7 @@ void cpu_exec_exit (s_ckone* kone) {
  * Affects: MAR, MBR, Rsp
  * Status: M (invalid memory access)
  */
-void cpu_push_value (s_ckone* kone, e_register sp, int32_t value) {
+static void cpu_push_value (s_ckone* kone, e_register sp, int32_t value) {
     kone->mbr = value;
     kone->r[sp]++;
     kone->mar = kone->r[sp];
@@ -281,7 +286,7 @@ void cpu_push_value (s_ckone* kone, e_register sp, int32_t value) {
  * Affects: MAR, MBR, Rsp
  * Status: M (invalid memory access)
  */
-void cpu_push_register (s_ckone* kone, e_register sp, e_register reg) {
+static void cpu_push_register (s_ckone* kone, e_register sp, e_register reg) {
     cpu_push_value (kone, sp, kone->r[reg]);
 }
 
@@ -298,7 +303,7 @@ void cpu_push_register (s_ckone* kone, e_register sp, e_register reg) {
  * Affects: MAR, MBR, Rsp, Rreg
  * Status: M (invalid memory access)
  */
-void cpu_pop_register (s_ckone* kone, e_register sp, e_register reg) {
+static void cpu_pop_register (s_ckone* kone, e_register sp, e_register reg) {
     kone->mar = kone->r[sp];
     mmu_read (kone);
     kone->r[reg] = kone->mbr;
@@ -311,7 +316,7 @@ void cpu_pop_register (s_ckone* kone, e_register sp, e_register reg) {
  *
  * @see cpu_push_value ()
  */
-void cpu_exec_push (s_ckone* kone) {
+static void cpu_exec_push (s_ckone* kone) {
     cpu_push_value (kone, instr_first_operand (kone->ir), kone->tr);
 }
 
@@ -321,7 +326,7 @@ void cpu_exec_push (s_ckone* kone) {
  *
  * @see cpu_pop_register ()
  */
-void cpu_exec_pop (s_ckone* kone) {
+static void cpu_exec_pop (s_ckone* kone) {
     cpu_pop_register (kone, instr_first_operand (kone->ir), instr_index_reg (kone->ir));
 }
 
@@ -331,7 +336,7 @@ void cpu_exec_pop (s_ckone* kone) {
  *
  * @see cpu_push_register ()
  */
-void cpu_exec_pushr (s_ckone* kone) {
+static void cpu_exec_pushr (s_ckone* kone) {
     e_register sp = instr_first_operand (kone->ir);
 
     for (e_register i = R0; i <= R6; i++)
@@ -344,7 +349,7 @@ void cpu_exec_pushr (s_ckone* kone) {
  *
  * @see cpu_pop_register ()
  */
-void cpu_exec_popr (s_ckone* kone) {
+static void cpu_exec_popr (s_ckone* kone) {
     e_register sp = instr_first_operand (kone->ir);
 
     for (e_register i = R0; i <= R6; i--)
@@ -358,7 +363,7 @@ void cpu_exec_popr (s_ckone* kone) {
  * Affects: MAR, MBR, Rx, FP
  * Status: M (invalid memory access)
  */
-void cpu_exec_svc (s_ckone* kone) {
+static void cpu_exec_svc (s_ckone* kone) {
     e_register sp = instr_first_operand (kone->ir);
     push_pc_fp (kone, sp);
 
@@ -375,7 +380,7 @@ void cpu_exec_svc (s_ckone* kone) {
  * Executes the current instruction. Assumes that the instruction has been
  * fetched and the second operand has been calculated and stored into TR.
  */
-void cpu_execute_instruction (s_ckone* kone) {
+static void cpu_execute_instruction (s_ckone* kone) {
     e_opcode op = instr_opcode (kone->ir);
     if (op == NOP)
         ;   // nothing

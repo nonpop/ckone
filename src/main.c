@@ -18,10 +18,13 @@ int main (int argc, char** argv) {
         return EXIT_FAILURE;
 
     FILE* program_file = NULL;
-    if (!strcmp (args.program, "-"))
+    if (!strcmp (args.program, "-")) {
         program_file = stdin;
-    else
+        ILOG ("Reading the program from standard input.\n", 0);
+    } else {
         program_file = fopen (args.program, "r");
+        ILOG ("Reading the program from %s\n", args.program);
+    }
 
     if (!program_file) {
         ELOG ("Cannot open %s for reading\n", args.program);

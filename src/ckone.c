@@ -15,18 +15,24 @@
  * @return True if successful, false otherwise.
  */
 bool ckone_init (s_ckone* kone) {
-    if (args.clean)
+    DLOG ("Initializing the ckone structure...\n", 0);
+    if (args.clean) {
+        ILOG ("Zeroing state structure...\n", 0);
         memset (kone, 0, sizeof(s_ckone));
+    }
 
+    DLOG ("Allocating emulator memory...\n", 0);
     kone->mem = malloc (args.mem_size*sizeof(int32_t));
     if (!kone->mem) {
-        ELOG ("Cannot allocate %d bytes of memory\n", args.mem_size*sizeof(int32_t));
+        ELOG ("Could not allocate %d bytes of memory\n", args.mem_size*sizeof(int32_t));
         return false;
     }
     DLOG ("Allocated %d bytes of memory\n", args.mem_size*sizeof(int32_t));
 
-    if (args.clean)
+    if (args.clean) {
+        ILOG ("Zeroing emulator memory...\n", 0);
         memset (kone->mem, 0, args.mem_size*sizeof(int32_t));
+    }
 
     kone->mem_size = args.mem_size;
     kone->mmu_base = args.mmu_base;
@@ -38,13 +44,14 @@ bool ckone_init (s_ckone* kone) {
 }
 
 
-char* read_line (FILE* input, int* linenum) {
+static char* read_line (FILE* input, int* linenum) {
     static char buf[1024];
     if (!fgets (buf, sizeof(buf), input)) {
         ELOG ("Failed to read from program file\n", 0);
         return NULL;
     }
     (*linenum)++;
+    DLOG ("Line %d = %s", *linenum, buf);
     return buf;
 }
 
@@ -56,6 +63,8 @@ char* read_line (FILE* input, int* linenum) {
  * @return True if successful, false otherwise.
  */
 bool ckone_load (s_ckone* kone, FILE* input) {
+    DLOG ("Reading the program file...\n", 0);
+
     int linenum = 0;
     char* line;
 
@@ -242,7 +251,7 @@ int ckone_run (s_ckone* kone) {
     ILOG ("Running program...\n", 0);
     if (args.step) {
         ckone_dump (kone);
-        fprintf (stderr, "Press enter to continue...");
+        printf ("Press enter to continue...");
         getchar ();
     }
 
@@ -256,7 +265,7 @@ int ckone_run (s_ckone* kone) {
             ckone_dump (kone);
 
             if (!kone->halted) {
-                fprintf (stderr, "Press enter to continue...");
+                printf ("Press enter to continue...");
                 getchar ();
             }
         }

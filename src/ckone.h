@@ -31,6 +31,11 @@ typedef struct {
 } s_ckone;
 
 
+typedef enum {
+    R0 = 0, R1, R2, R3, R4, R5, R6, R7, SP = 6, FP = 7
+} e_register;
+
+
 // Status register bits
 enum {
     SR_G = 1 << 31,     // Greater
@@ -40,10 +45,10 @@ enum {
     SR_Z = 1 << 27,     // Division by zero
     SR_U = 1 << 26,     // Unknown instruction
     SR_M = 1 << 25,     // Forbidden memory address
-    SR_I = 1 << 24,     // Device interrupt
-    SR_S = 1 << 23,     // Supervisor call
-    SR_P = 1 << 22,     // Priviledged mode
-    SR_D = 1 << 21,     // Interrupts disabled
+    SR_I = 1 << 24,     // Device interrupt (unused)
+    SR_S = 1 << 23,     // Supervisor call (unused)
+    SR_P = 1 << 22,     // Priviledged mode (unused)
+    SR_D = 1 << 21,     // Interrupts disabled (unused)
 };
 
 

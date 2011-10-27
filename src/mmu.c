@@ -15,7 +15,7 @@
  * @param laddr The logical address (i.e. relative to mmu_base)
  * @return The physical address (i.e. absolute address)
  */
-uint32_t calculate_paddr (s_ckone* kone, uint32_t laddr) {
+static uint32_t calculate_paddr (s_ckone* kone, uint32_t laddr) {
     return kone->mmu_base + laddr;
 }
 
@@ -27,7 +27,7 @@ uint32_t calculate_paddr (s_ckone* kone, uint32_t laddr) {
  * @return true if the address can be accessed.
  */
 
-bool valid_paddr (s_ckone* kone, int32_t paddr) {
+static bool valid_paddr (s_ckone* kone, int32_t paddr) {
     return paddr >= kone->mmu_base && paddr < kone->mmu_base + kone->mmu_limit;
 }
 

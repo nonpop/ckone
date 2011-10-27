@@ -11,7 +11,7 @@ typedef struct {
 
 #define I(instr) { instr, #instr }
 
-s_instr_name instruction_names[] = {
+static s_instr_name instruction_names[] = {
     I(NOP),
     I(STORE), I(LOAD), I(IN), I(OUT),
     I(ADD), I(SUB), I(MUL), I(DIV), I(MOD),
@@ -25,7 +25,7 @@ s_instr_name instruction_names[] = {
 };
 
 
-const char* op_name (e_opcode opcode) {
+static const char* op_name (e_opcode opcode) {
     s_instr_name* in = instruction_names;
     while (in->name) {
         if (in->opcode == opcode)

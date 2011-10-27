@@ -3,9 +3,6 @@
 
 
 void test_instr () {
-    BEGIN ("operation name") {
-        TEST_STR ("JZER", op_name (JZER));
-    }
     BEGIN ("instruction decoding 1") {
         uint32_t instr = make_instr (LOAD, R2, DIRECT, R1, 1234);
         TEST (e_opcode, "0x%x", LOAD, instr_opcode (instr));
