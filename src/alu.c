@@ -43,7 +43,7 @@ static void do_and_check (s_ckone* kone, e_op op) {
 
 
 // Macros for debugging output
-#define MSG(op) DLOG ("Calculating 0x%x " op " 0x%x (%d + %d)\n", \
+#define MSG(op) DLOG ("Calculating 0x%x " op " 0x%x (%d " op " %d)\n", \
         kone->alu_in1, kone->alu_in2, kone->alu_in1, kone->alu_in2);
 #define RES() DLOG ("Result = 0x%x (%d)\n", kone->alu_out, kone->alu_out)
 
@@ -72,6 +72,7 @@ void alu_div (s_ckone* kone) {
     MSG ("/");
     if (kone->alu_in2 == 0) {
         kone->sr |= SR_Z;
+        ELOG ("Division by zero.\n", 0);
         return;
     }
 
