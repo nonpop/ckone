@@ -32,7 +32,7 @@ static struct argp_option options[] = {
     { "columns",        'c',    "COLS",     0, "Use COLS columns in the memory dump (default: " STR(DEFAULT_MEM_COLS) ")", 0 },
     { "step",           's',    0,          0, "Pause execution after each instruction", 0 },
     { "verbose",        'v',    0,          0, "Be verbose (use twice to be very verbose)", 0 },
-    { "emulate-bugs",   400,    0,          0, "Emulate a bug found in TitoKone 1.203", 0 },
+    { "emulate-bugs",   400,    0,          0, "Emulate bugs found in TitoKone 1.203", 0 },
     { "show-symtable",  'y',    0,          0, "Include the symbol table in dumps", 0 },
     { 0, 0, 0, 0, 0, 0 }
 };

@@ -366,6 +366,7 @@ static void cpu_exec_popr (s_ckone* kone) {
 static void cpu_exec_svc (s_ckone* kone) {
     e_register sp = instr_first_operand (kone->ir);
     push_pc_fp (kone, sp);
+    DLOG ("FP is now 0x%x\n", kone->r[FP]);
 
     uint32_t params = ext_svc (kone);
 

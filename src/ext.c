@@ -299,13 +299,21 @@ static int32_t svc_time (s_ckone* kone) {
 
     DLOG ("Now is: %s\n", asctime (t));
 
-    kone->mar = kone->r[FP] - 2;
+    kone->mar = kone->r[FP] - 2;    // address of seconds variable
+    mmu_read (kone);
+    kone->mar = kone->mbr;
     kone->mbr = t->tm_sec;
     mmu_write (kone);
-    kone->mar--;
+
+    kone->mar = kone->r[FP] - 3;    // address of minutes variable
+    mmu_read (kone);
+    kone->mar = kone->mbr;
     kone->mbr = t->tm_min;
     mmu_write (kone);
-    kone->mar--;
+
+    kone->mar = kone->r[FP] - 4;    // address of hours variable
+    mmu_read (kone);
+    kone->mar = kone->mbr;
     kone->mbr = t->tm_hour;
     mmu_write (kone);
 
@@ -315,6 +323,9 @@ static int32_t svc_time (s_ckone* kone) {
 
 /**
  * Get the current date and store it to the locations given on the stack.
+ *
+ * NOTE: At least TitoKone 1.203 seems to report the month as one too small.
+ * This can be replicated using the --emulate-bugs flag.
  *
  * @return How many arguments to pop.
  *
@@ -328,13 +339,21 @@ static int32_t svc_date (s_ckone* kone) {
 
     DLOG ("Now is: %s\n", asctime (t));
 
-    kone->mar = kone->r[FP] - 2;
+    kone->mar = kone->r[FP] - 2;        // address of days variable
+    mmu_read (kone);
+    kone->mar = kone->mbr;
     kone->mbr = t->tm_mday;
     mmu_write (kone);
-    kone->mar--;
-    kone->mbr = t->tm_mon + 1;
+
+    kone->mar = kone->r[FP] - 3;        // address of months variable
+    mmu_read (kone);
+    kone->mar = kone->mbr;
+    kone->mbr = t->tm_mon + (args.emulate_bugs? 0 : 1);
     mmu_write (kone);
-    kone->mar--;
+
+    kone->mar = kone->r[FP] - 4;        // address of years variable
+    mmu_read (kone);
+    kone->mar = kone->mbr;
     kone->mbr = t->tm_year + 1900;
     mmu_write (kone);
 

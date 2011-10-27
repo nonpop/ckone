@@ -1,0 +1,34 @@
+hours dc 0
+minutes dc 0
+seconds dc 0
+
+years dc 0
+months dc 0
+days dc 0
+
+push sp, =hours
+push sp, =minutes
+push sp, =seconds
+svc sp, =time
+
+push sp, =years
+push sp, =months
+push sp, =days
+svc sp, =date
+
+load r0, days
+out r0, =crt
+load r0, months
+out r0, =crt
+load r0, years
+out r0, =crt
+
+load r0, hours
+out r0, =crt
+load r0, minutes
+out r0, =crt
+load r0, seconds
+out r0, =crt
+
+svc sp, =halt
+
