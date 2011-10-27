@@ -31,7 +31,7 @@ static struct argp_option options[] = {
     { "clean",          302,    0,          0, "Fill memory and registers with zero before starting", 0 },
     { "columns",        'c',    "COLS",     0, "Use COLS columns in the memory dump (default: " STR(DEFAULT_MEM_COLS) ")", 0 },
     { "step",           's',    0,          0, "Pause execution after each instruction", 0 },
-    { "verbose",        'v',    0,          0, "Be verbose (warning: produces lots of output)", 0 },
+    { "verbose",        'v',    0,          0, "Be verbose (use twice to be very verbose)", 0 },
     { "emulate-bugs",   400,    0,          0, "Emulate a bug found in TitoKone 1.203", 0 },
     { "show-symtable",  'y',    0,          0, "Include the symbol table in dumps", 0 },
     { 0, 0, 0, 0, 0, 0 }
@@ -52,7 +52,7 @@ parse_opt (int key, char* arg, struct argp_state *state) {
             arguments->step = true;
             break;
         case 'v':
-            arguments->verbose = true;
+            arguments->verbosity++;
             break;
         case 'm':
             arguments->mem_size = atoi(arg);
@@ -111,7 +111,7 @@ bool parse_args (int argc, char** argv) {
     args.clean = false;
     args.mem_cols = DEFAULT_MEM_COLS;
     args.step = false;
-    args.verbose = false;
+    args.verbosity = 0;
     args.emulate_bugs = false;
     args.program = NULL;
     args.include_symtable = false;
@@ -126,7 +126,7 @@ bool parse_args (int argc, char** argv) {
     DLOG ("clean = %s\n", bool_to_yesno (args.clean));
     DLOG ("mem_cols = %d\n", args.mem_cols);
     DLOG ("step = %s\n", bool_to_yesno (args.step));
-    DLOG ("verbose = %s\n", bool_to_yesno (args.verbose));
+    DLOG ("verbosity = %d\n", args.verbosity);
     DLOG ("emulate_bugs = %s\n", bool_to_yesno (args.emulate_bugs));
     DLOG ("program = %s\n", args.program);
     DLOG ("include_symtable = %s\n", bool_to_yesno (args.include_symtable));
@@ -156,6 +156,9 @@ bool parse_args (int argc, char** argv) {
         ELOG ("mem_cols must be positive\n", 0);
         return false;
     }
+
+    if (args.verbosity > 2)
+        args.verbosity = 2;
 
     return true;
 }

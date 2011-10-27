@@ -75,16 +75,17 @@ int32_t make_instr (
 
 
 static char* reg_name (e_register r) {
-    static char buf[3];
-
-    if (r < R6)
-        snprintf (buf, 3, "R%d", r);
-    else if (r == SP)
-        snprintf (buf, 3, "SP");
-    else if (r == FP)
-        snprintf (buf, 3, "FP");
-
-    return buf;
+    switch (r) {
+        case R0: return "R0";
+        case R1: return "R1";
+        case R2: return "R2";
+        case R3: return "R3";
+        case R4: return "R4";
+        case R5: return "R5";
+        case SP: return "SP";
+        case FP: return "FP";
+    }
+    return "This cannot happen";
 }
 
 

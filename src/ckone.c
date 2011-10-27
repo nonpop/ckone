@@ -18,14 +18,15 @@ bool ckone_init (s_ckone* kone) {
     if (args.clean)
         memset (kone, 0, sizeof(s_ckone));
 
-    kone->mem = malloc (args.mem_size*sizeof(uint32_t));
+    kone->mem = malloc (args.mem_size*sizeof(int32_t));
     if (!kone->mem) {
-        ELOG ("Cannot allocate %d bytes of memory\n", args.mem_size*sizeof(uint32_t));
+        ELOG ("Cannot allocate %d bytes of memory\n", args.mem_size*sizeof(int32_t));
         return false;
     }
+    DLOG ("Allocated %d bytes of memory\n", args.mem_size*sizeof(int32_t));
 
     if (args.clean)
-        memset (kone->mem, 0, args.mem_size*sizeof(uint32_t));
+        memset (kone->mem, 0, args.mem_size*sizeof(int32_t));
 
     kone->mem_size = args.mem_size;
     kone->mmu_base = args.mmu_base;
@@ -75,18 +76,22 @@ bool ckone_load (s_ckone* kone, FILE* input) {
     if (strcmp (line, "___code___\n"))
         EXPECTED ("___code___");
 
-    int start, end;
+    size_t start, end;
     READ_CHECK ();
-    if (sscanf (line, "%d %d", &start, &end) != 2)
+    if (sscanf (line, "%u %u", &start, &end) != 2)
         EXPECTED ("two integers");
     
     DLOG ("Code segment: %d - %d\n", start, end);
-    for (int i = start; i <= end; i++) {
+    for (size_t i = start; i <= end; i++) {
         READ_CHECK ();
         int instr;
         if (sscanf (line, "%d", &instr) != 1)
             EXPECTED ("an integer");
 
+        if (i >= kone->mem_size) {
+            ELOG ("The program is too big to fit in %d words\n", kone->mem_size);
+            return false;
+        }
         kone->mem[i] = instr;
     }
 
@@ -96,16 +101,20 @@ bool ckone_load (s_ckone* kone, FILE* input) {
         EXPECTED ("___data___");
 
     READ_CHECK ();
-    if (sscanf (line, "%d %d", &start, &end) != 2)
+    if (sscanf (line, "%u %u", &start, &end) != 2)
         EXPECTED ("two integers");
 
     DLOG ("Data segment: %d - %d\n", start, end);
-    for (int i = start; i <= end; i++) {
+    for (size_t i = start; i <= end; i++) {
         READ_CHECK ();
         int data;
         if (sscanf (line, "%d", &data) != 1)
             EXPECTED ("an integer");
 
+        if (i >= kone->mem_size) {
+            ELOG ("The program is too big to fit in %d words\n", kone->mem_size);
+            return false;
+        }
         kone->mem[i] = data;
     }
 
@@ -211,6 +220,14 @@ void ckone_dump_registers (s_ckone* kone) {
 void ckone_dump (s_ckone* kone) {
     printf ("\nCurrent state:\n\n");
     ckone_dump_registers (kone);
+    if (args.step) {
+        char buf[1024];
+        if (!kone->halted && kone->pc >= 0 && (size_t)kone->pc < kone->mem_size)
+            instr_string (kone->mem[kone->pc], buf, sizeof(buf));
+        else
+            snprintf (buf, sizeof(buf), "N/A");
+        printf ("\n>>> Next instruction: %s\n", buf);
+    }
     printf ("\n");
     if (args.include_symtable) {
         symtable_dump ();
@@ -223,6 +240,12 @@ void ckone_dump (s_ckone* kone) {
 
 int ckone_run (s_ckone* kone) {
     ILOG ("Running program...\n", 0);
+    if (args.step) {
+        ckone_dump (kone);
+        fprintf (stderr, "Press enter to continue...");
+        getchar ();
+    }
+
     while (!kone->halted) {
         if (!cpu_step (kone)) {
             ILOG ("Execution stopped.\n", 0);

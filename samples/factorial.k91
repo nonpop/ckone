@@ -1,0 +1,38 @@
+; asks for an integer and calculates its factorial
+
+stack   ds 60               ; 12! is the biggest we can calculate, so this should be enough
+                            ; (each recursion uses max. 4 pushes)
+        
+        load sp, =stack     ; setup stack
+
+        in r1, =kbd         ; read and validate input
+        jneg r1, fail
+        comp r1, =12
+        jgre fail
+
+        push sp, r1
+        call sp, fac
+        jump end
+        
+fail    load r1, =-1        ; output -1 to indicate invalid input
+end     out r1, =crt        ; output the result
+        svc sp, =halt       ; halt
+
+
+; the recursive factorial subroutine
+n equ -2                    ; the argument
+fac     load r1, n(fp)
+        comp r1, =1
+        jgre fac_cont
+
+        load r1, =1         ; 0! = 1! = 1
+        exit sp, =1
+
+fac_cont push sp, r1        ; save n
+        sub r1, =1
+        push sp, r1
+        call sp, fac        ; calculate (n-1)!
+        pop sp, r2          ; r2 = n
+        mul r1, r2          ; r1 = n * (n-1)!
+        exit sp, =1
+

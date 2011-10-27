@@ -5,7 +5,9 @@
 
 
 void wlog (e_loglevel lvl, const char* fmt, ...) {
-    if (lvl >= LOG_INFO || args.verbose)
+    if ((lvl >= LOG_WARN) ||
+        (lvl >= LOG_INFO && args.verbosity >= 1) ||
+        (args.verbosity >= 2))
     {
         va_list ap;
         va_start (ap, fmt);

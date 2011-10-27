@@ -15,7 +15,7 @@ typedef struct {
     bool clean;
     int mem_cols;
     bool step;
-    bool verbose;
+    int verbosity;
     bool emulate_bugs;
     char* program;
     bool include_symtable;

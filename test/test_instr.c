@@ -26,7 +26,7 @@ void test_instr () {
         uint32_t instr = make_instr (LOAD, R2, DIRECT, R1, 1234);
         char buf[512];
         instr_string (instr, buf, sizeof(buf));
-        TEST_STR ("LOAD, first opr: R2, indirections: 1, index: R1, constant: 1234", buf);
+        TEST_STR ("LOAD, first opr: R2, indirections: 1, index: R1, constant: 0x04d2 (1234)", buf);
     }
 }
 
