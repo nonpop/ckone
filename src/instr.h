@@ -4,6 +4,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include "ckone.h"
 
 struct s_ckone;
 

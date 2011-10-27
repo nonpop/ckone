@@ -51,12 +51,12 @@ op_name (
         e_opcode opcode     ///< The operation code.
         ) 
 {
-    s_instr_name* in = instruction_names;
-    while (in->name) {
-        if (in->opcode == opcode)
-            return in->name;
+    s_op_name* on = op_names;
+    while (on->name) {
+        if (on->opcode == opcode)
+            return on->name;
 
-        in++;
+        on++;
     }
 
     return "(Unknown)";

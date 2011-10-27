@@ -16,6 +16,7 @@ void test_cpu () {
     k.mem = mem;
     k.mem_size = sizeof(mem)/sizeof(int32_t);
 
+    /*
     BEGIN ("fetch_instr") {
         clear (&k);
         k.mmu_limit = 2;
@@ -71,6 +72,7 @@ void test_cpu () {
         TEST_I32 (1337, k.tr);
         TEST_I32X (0, k.sr & (SR_M | SR_U));
     }
+    */
 
     BEGIN ("load/store, addressing modes") {
         clear (&k);

@@ -2,7 +2,9 @@
 #define CPU_H
 
 
-struct s_ckone;
+#include <stdbool.h>
+#include "ckone.h"
+
 
 extern bool cpu_step (s_ckone* kone);
 
