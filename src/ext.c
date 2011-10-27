@@ -31,17 +31,28 @@ s_device devices[] = {
 
 /**
  * Initialize the external devices. CRT is will be stdout and
- * KBD will be stdin. The given arguments define the STDIN and
- * STDOUT devices.
- *
- * @param stdinf File for the STDIN device.
- * @param stdoutf File for the STDOUT device.
+ * KBD will be stdin. The values in the args structure define
+ * the STDIN and STDOUT devices.
  */
-void ext_init_devices (FILE* stdinf, FILE* stdoutf) {
-    devices[0].file = stdin;
-    devices[1].file = stdout;
-    devices[2].file = stdinf;
-    devices[3].file = stdoutf;
+void ext_init_devices () {
+    devices[0].file = stdout;
+    devices[1].file = stdin;
+
+    if (!args.stdin_file)
+        args.stdin_file = "stdin";
+    if (!args.stdout_file)
+        args.stdout_file = "stdout";
+
+
+    devices[2].file = fopen (args.stdin_file, "r");
+    if (!devices[2].file)
+        WLOG ("Cannot open %s for reading; trying to read from STDIN will not work\n",
+                args.stdin_file);
+    
+    devices[3].file = fopen (args.stdout_file, "w");
+    if (!devices[3].file)
+        WLOG ("Cannot open %s for writing; trying to write to STDOUT will not work\n",
+                args.stdout_file);
 }
 
 
@@ -156,6 +167,7 @@ FILE* get_device_file (uint32_t dev_num, bool input) {
  * Status: M (invalid device)
  */
 void ext_in (s_ckone* kone) {
+    DLOG ("SVC IN\n", 0);
     FILE* f = get_device_file (kone->tr, true);
     if (!f) {
         kone->sr |= SR_M;
@@ -176,6 +188,7 @@ void ext_in (s_ckone* kone) {
  * Status: M (invalid device)
  */
 void ext_out (s_ckone* kone) {
+    DLOG ("SVC OUT\n", 0);
     FILE* f = get_device_file (kone->tr, false);
     if (!f) {
         kone->sr |= SR_M;
@@ -195,8 +208,9 @@ void ext_out (s_ckone* kone) {
  * Affects: halted
  */
 int32_t svc_halt (s_ckone* kone) {
-    ILOG ("Halted.\n", 0);
+    DLOG ("SVC HALT\n", 0);
     kone->halted = true;
+    ILOG ("Halted.\n", 0);
     return 0;
 }
 
@@ -215,6 +229,7 @@ int32_t svc_halt (s_ckone* kone) {
  * Status: M (invalid memory access)
  */
 int32_t svc_read (s_ckone* kone) {
+    DLOG ("SVC READ\n", 0);
     FILE* f = get_device_file (KBD, true);
     if (!f) {
         ELOG ("WTF?", 0);
@@ -227,6 +242,7 @@ int32_t svc_read (s_ckone* kone) {
     mmu_read (kone);    // read the address of the destination variable
     kone->mar = kone->mbr;
     kone->mbr = read_input (f);     // read the value from keyboard
+    DLOG ("Read %d from KBD\n", kone->mbr);
     mmu_write (kone);               // write it to the destination variable
 
     return 1 + ofs;
@@ -242,6 +258,7 @@ int32_t svc_read (s_ckone* kone) {
  * Status: M (invalid memory access)
  */
 int32_t svc_write (s_ckone* kone) {
+    DLOG ("SVC WRITE\n", 0);
     FILE* f = get_device_file (CRT, false);
     if (!f) {
         ELOG ("WTF?", 0);
@@ -251,6 +268,7 @@ int32_t svc_write (s_ckone* kone) {
     kone->mar = kone->r[FP] - 2;
     mmu_read (kone);
     write_output (f, kone->mbr);
+    DLOG ("Wrote %d to CRT\n", kone->mbr);
     return 1;
 }
 
@@ -264,6 +282,7 @@ int32_t svc_write (s_ckone* kone) {
  * Status: M (invalid memory access)
  */
 int32_t svc_time (s_ckone* kone) {
+    DLOG ("SVC TIME\n", 0);
     time_t now = time (NULL);
     struct tm* t = localtime (&now);
 
@@ -290,6 +309,7 @@ int32_t svc_time (s_ckone* kone) {
  * Status: M (invalid memory access)
  */
 int32_t svc_date (s_ckone* kone) {
+    DLOG ("SVC DATE\n", 0);
     time_t now = time (NULL);
     struct tm* t = localtime (&now);
 

@@ -5,7 +5,8 @@
 #include "ckone.h"
 
 
-extern void cpu_step (s_ckone* kone);
+extern bool cpu_step (s_ckone* kone);
+extern void cpu_reset (s_ckone* kone);
 
 
 #endif

@@ -74,9 +74,25 @@ int32_t make_instr (
 }
 
 
+static char* reg_name (e_register r) {
+    static char buf[3];
+
+    if (r < R6)
+        snprintf (buf, 3, "R%d", r);
+    else if (r == SP)
+        snprintf (buf, 3, "SP");
+    else if (r == FP)
+        snprintf (buf, 3, "FP");
+
+    return buf;
+}
+
+
 void instr_string (uint32_t instr, char* buffer, size_t buf_size) {
-    snprintf (buffer, buf_size, "%s, first opr: R%u, indirections: %u, index: R%u, constant: %d",
-            op_name (instr_opcode (instr)), instr_first_operand (instr),
-            instr_addr_mode (instr), instr_index_reg (instr), instr_addr (instr));
+    snprintf (buffer, buf_size, "%s, first opr: %s, indirections: %u, "
+            "index: %s, constant: 0x%04x (%d)",
+            op_name (instr_opcode (instr)), reg_name (instr_first_operand (instr)),
+            instr_addr_mode (instr), reg_name (instr_index_reg (instr)),
+            instr_addr (instr), instr_addr (instr));
 }
 

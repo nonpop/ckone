@@ -3,6 +3,7 @@
 #include "instr.h"
 #include "alu.h"
 #include "ext.h"
+#include "args.h"
 
 
 /**
@@ -64,6 +65,17 @@ void cpu_calculate_second_operand (s_ckone* kone) {
     }
 
     DLOG ("The second operand is: 0x%x\n", kone->tr);
+}
+
+
+/**
+ * Reset the CPU. Clears the SR and PC registers and the halted
+ * flog but does not touch anything else.
+ */
+void cpu_reset (s_ckone* kone) {
+    kone->sr = 0;
+    kone->pc = 0;
+    kone->halted = false;
 }
 
 
@@ -402,18 +414,28 @@ void cpu_execute_instruction (s_ckone* kone) {
  * Fetch the next instruction, calculate its second operand, and
  * execute it.
  */
-void cpu_step (s_ckone* kone) {
+bool cpu_step (s_ckone* kone) {
     cpu_fetch_instr (kone);
     if (kone->sr & SR_M)
-        return;
+        return false;
+
+    char buf[1024];
+    instr_string (kone->ir, buf, sizeof(buf));
+    ILOG ("Executing %s\n", buf);
 
     cpu_calculate_second_operand (kone);
     if (kone->sr & (SR_O | SR_M | SR_U))
-        return;
+        return false;
     
-    char buf[1024];
-    instr_string (kone->ir, buf, sizeof(buf));
-    DLOG ("Executing %s\n", buf);
     cpu_execute_instruction (kone);
+    if (kone->sr & ~(SR_L | SR_E | SR_G))
+        return false;
+
+    if (args.step)
+        ILOG ("Instruction finished.\n", 0);
+    else
+        DLOG ("Instruction finished.\n", 0);
+
+    return true;
 }
 

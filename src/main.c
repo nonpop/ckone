@@ -6,27 +6,17 @@
 #include "ckone.h"
 
 
-extern void parse_args (int argc, char** argv);
+extern bool parse_args (int argc, char** argv);
 extern bool ckone_init (s_ckone* kone);
 extern bool ckone_load (s_ckone* kone, FILE* input);
 extern int ckone_run (s_ckone* kone);
-extern void ext_init_devices (FILE* stdin_file, FILE* stdout_file);
+extern void ext_init_devices ();
 
 
 int main (int argc, char** argv) {
     if (!parse_args (argc, argv))
         return EXIT_FAILURE;
 
-    FILE* stdin_file = fopen (args.stdin_file, "r");
-    if (!stdin_file)
-        WLOG ("Cannot open %s for reading; trying to read from STDIN will not work\n",
-                args.stdin_file);
-    
-    FILE *stdout_file = fopen (args.stdout_file, "w");
-    if (!stdout_file)
-        WLOG ("Cannot open %s for writing; trying to write to STDOUT will not work\n",
-                args.stdout_file);
-    
     FILE* program_file = NULL;
     if (!strcmp (args.program, "-"))
         program_file = stdin;
@@ -45,7 +35,7 @@ int main (int argc, char** argv) {
     if (!ckone_load (&kone, program_file))
         return EXIT_FAILURE;
 
-    ext_init_devices (stdin_file, stdout_file);
+    ext_init_devices ();
     return ckone_run (&kone);
 }
 

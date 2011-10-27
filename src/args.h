@@ -1,3 +1,7 @@
+#ifndef ARGS_H
+#define ARGS_H
+
+
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -8,12 +12,18 @@ typedef struct {
     size_t mem_size;
     int32_t mmu_base;
     int32_t mmu_limit;
+    bool clean;
+    int mem_cols;
     bool step;
     bool verbose;
     bool emulate_bugs;
     char* program;
+    bool include_symtable;
 } s_arguments;
 
 
 extern s_arguments args;
+
+
+#endif
 

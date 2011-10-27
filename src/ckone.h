@@ -9,8 +9,8 @@
 #include "log.h"
 
 
-#define DEFAULT_MEM_SIZE 1024
-#define DEFAULT_MEM_SIZE_STR "1024"
+#define DEFAULT_MEM_SIZE 64
+#define DEFAULT_MEM_COLS 4
 
 
 typedef struct {
