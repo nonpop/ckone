@@ -1,0 +1,13 @@
+X     DC 5	
+Y     DC 6 
+Z     DC 7
+  
+Main  LOAD  R4, G
+      STORE R4, K
+      LOAD  R1, X
+K     ADD   R1, Z
+G     MUL   R1, Y
+      STORE R1, Z 
+      OUT   R1, =CRT
+      SVC   SP, =HALT	
+

@@ -1,0 +1,45 @@
+;HEADER Luentoesimerkki ESM2.K91
+
+A DS 1          ;p„„ohjelman
+B DS 1          ;muuttujat 
+ESM2 IN    R3,=KBD
+     STORE R3,A
+     PUSH  SP,=0
+     PUSH  SP,=2
+     CALL  SP,SQR
+     POP   SP,R2
+     OUT   R2,=CRT
+     STORE R2,B
+     PUSH  SP,=B
+     PUSH  SP,A
+     CALL  SP,SUMMA
+     SVC   SP,=HALT 
+
+X     EQU -2    ;parametrille x
+F_RET EQU -3    ;paluuarvolle 
+
+SQR   LOAD  R3,X(FP)
+      MUL   R3,R3
+      STORE R3,F_RET(FP)
+      EXIT  SP,=1 ;oli yksi parametri 
+
+X_S  EQU -3 ;parametri x
+Y_S  EQU -2 ;parametri y
+Z_S  EQU 1  ;paikallinen z
+LISA EQU 5 
+SUMMA PUSH  SP,=0 ;tilavaraus paikalliselle
+      LOAD  R1,A
+      ADD   R1,B
+      STORE R1,Z_S(FP)
+      PUSH  SP,=0
+      PUSH  SP,@X_S(FP)
+      CALL  SP,SQR
+      POP   SP,R3
+      ADD   R3,Y_S(FP)
+      ADD   R3,=LISA
+      ADD   R3,Z_S(FP)
+      STORE R3,@X_S(FP)
+      OUT   R3,=CRT
+      SUB   SP,=1 ;poista paikallinen
+      EXIT  SP,=2 ;poista 2 parametria
+

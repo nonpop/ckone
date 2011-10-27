@@ -1,0 +1,49 @@
+; fact - compute and print 
+;        factorial of input N
+
+N	DC   0
+K 	DC   0
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; main program
+;
+main	IN    R1, =KBD ; input N
+        STORE R1, N
+
+        ; k = fact (N)
+        PUSH  SP, =0
+        PUSH  SP, N
+        CALL  SP, fact
+        POP   SP, R1
+        STORE R1, K
+
+        LOAD  R2, K    ; output K
+        OUT   R2, =CRT
+
+        SVC   SP, =HALT
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; function fact (int parN): int
+; 
+retF    EQU  -3
+parN    EQU  -2
+
+fact    PUSH  SP, R1 ; save R1
+
+        LOAD R1,  parN(FP)
+        COMP R1,=1
+        JEQU One ; return 1 ?
+	
+        ; call fact(N-1)
+        SUB   R1,=1
+        PUSH  SP,=0 ; ret. value
+        PUSH  SP, R1
+        CALL  SP, fact	   
+        POP   SP, R1
+        	
+        MUL  R1, parN(FP) ; fact(n-1)*n 
+
+One     STORE R1, retF(FP)
+
+        POP    SP, R1; restore R1
+        EXIT   SP, =1 ; 1 param.

@@ -1,0 +1,18 @@
+;Sijoitus
+;X=X-A;
+
+X DS 1
+A DS 1
+
+IN R1,=KBD
+IN R2,=KBD
+STORE R1,X
+STORE R2,A
+
+;X=X-A;
+
+LOAD R1,X
+LOAD R2,A
+SUB R1,R2
+STORE R1,X
+SVC SP,=HALT

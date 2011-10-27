@@ -1,0 +1,70 @@
+R	DC	24
+T	DC	0
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; program procC.k91 
+; demonstrate subroutine calling a function
+;
+main    LOAD  R1,=1 ; retain this value
+
+	; call procC (200, R, T)
+        PUSH  SP, =200
+        PUSH  SP, R
+        PUSH  SP, =T 
+        CALL  SP, procC
+
+        ADD   R1, T
+        OUT   R1, =CRT	
+        SVC   SP, =HALT
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; procC - simple procedure to compute ...
+; 	parXc  - int call-by-value
+;	parYc  - int call-by-value
+;	parpZ - int call-by-reference
+;
+
+parXc   EQU  -4 ; name parX used in fA
+parYc   EQU  -3
+parpZ   EQU  -2
+
+procC   PUSH  SP, R1 ; save R1
+        
+        ; call fA(parXc, parYc)
+        PUSH  SP,=0 ; ret. value
+        PUSH  SP, parXc(FP)
+        PUSH  SP, parYc(FP)
+        CALL  SP, fA	   
+        POP   SP, R1
+        STORE R1, @parpZ (FP)
+ 
+        POP   SP, R1; restore R1
+        EXIT  SP, =3 ; 3 param.
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; fA - compute trivial function
+;        parX:  int call-by-value
+;        parY:  int call-by-value
+;    ret retfA: int   
+
+retfA   EQU  -4 ; relative to FP
+parX    EQU  -3
+parY    EQU  -2
+locZ    EQU  1
+
+fA      PUSH  SP, =0 ; alloc Z
+        PUSH  SP, R1 ; save R1
+		
+        LOAD  R1,=5; alusta Z
+        STORE R1, locZ (FP)
+
+        LOAD  R1, parX(FP)
+        MUL   R1, locZ(FP)
+        ADD   R1, parY(FP)
+        STORE R1, locZ(FP)
+
+        STORE R1, retfA(FP)
+        
+        POP    SP, R1; restore R1
+        SUB	   SP, =1 ; dealloc Z
+        EXIT   SP, =2 ; 2 param.

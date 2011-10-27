@@ -1,0 +1,18 @@
+X	  DC 5	
+Y	  DC 6 
+Z       DC 7
+pow24   DC 16777216 ; 2 to power 24
+  
+Main  LOAD  R4, T 
+      MOD   R4, pow24
+      LOAD  R5, =19
+      SHL   R5, =24
+      OR    R4, R5 
+      STORE R4, T
+
+      LOAD  R1, X
+T     ADD   R1, Y
+
+      STORE R1, Z
+      OUT   R1, =CRT
+      SVC   SP, =HALT	

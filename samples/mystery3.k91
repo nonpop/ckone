@@ -1,0 +1,18 @@
+P	DC 520
+Q	DC 26
+R       DC 87
+MSK     DC 16777215 ; (2 to power 24) - 1
+  
+Main  LOAD  R4, H 
+      AND   R4, MSK
+      LOAD  R5, =17
+      SHL   R5, =24
+      OR    R4, R5 
+      STORE R4, H
+
+      LOAD  R2, P
+H     DIV   R2, Q
+
+      STORE R2, R
+      OUT   R2, =CRT
+      SVC   SP, =HALT	

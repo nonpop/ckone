@@ -91,6 +91,9 @@ bool ckone_load (s_ckone* kone, FILE* input) {
         EXPECTED ("two integers");
     
     DLOG ("Code segment: %d - %d\n", start, end);
+    kone->r[FP] = end;
+    ILOG ("Frame pointer set to 0x%x\n", end);
+
     for (size_t i = start; i <= end; i++) {
         READ_CHECK ();
         int instr;
@@ -114,6 +117,9 @@ bool ckone_load (s_ckone* kone, FILE* input) {
         EXPECTED ("two integers");
 
     DLOG ("Data segment: %d - %d\n", start, end);
+    kone->r[SP] = end;
+    ILOG ("Stack pointer set to 0x%x\n", end);
+
     for (size_t i = start; i <= end; i++) {
         READ_CHECK ();
         int data;
@@ -247,12 +253,35 @@ void ckone_dump (s_ckone* kone) {
 }
 
 
+static bool pause () {
+    while (true) {
+        printf ("Type enter to execute the next instruction, \"s\" to show\n"
+                "the symbol table, or \"q\" to quit: \n");
+
+        char buf[1024];
+        fgets (buf, sizeof (buf), stdin);
+
+        if (!strcmp (buf, "\n"))
+            return true;
+
+        if (!strcmp (buf, "s\n")) {
+            printf ("\n");
+            symtable_dump ();
+            printf ("\n");
+        }
+
+        if (!strcmp (buf, "q\n"))
+            return false;
+    }
+}
+
+
 int ckone_run (s_ckone* kone) {
     ILOG ("Running program...\n", 0);
     if (args.step) {
         ckone_dump (kone);
-        printf ("Press enter to continue...");
-        getchar ();
+        if (!pause ())
+            return EXIT_FAILURE;
     }
 
     while (!kone->halted) {
@@ -263,11 +292,9 @@ int ckone_run (s_ckone* kone) {
         }
         if (args.step) {
             ckone_dump (kone);
-
-            if (!kone->halted) {
-                printf ("Press enter to continue...");
-                getchar ();
-            }
+            if (!kone->halted)
+                if (!pause ())
+                    return EXIT_FAILURE;
         }
     }
     if (!args.step)

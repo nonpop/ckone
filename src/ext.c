@@ -84,7 +84,9 @@ static int32_t read_input (FILE* in) {
     }
 
     int32_t value;
-    sscanf (buf, "%d", &value);   // TODO: make sure the input really was an integer
+    if (sscanf (buf, "%d", &value) != 1)
+        WLOG ("The value read was not an integer.\n", 0);
+        
     return value;
 }
 

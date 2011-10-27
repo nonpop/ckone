@@ -1,0 +1,42 @@
+m ds 1
+in r1,=kbd
+store r1,m
+push sp,r1
+push sp,=1
+push sp,=2
+push sp,=3
+call sp, siirra
+svc sp,=halt
+
+c equ -2
+b equ -3
+a equ -4
+n equ -5
+siirra  load r1,n(fp)
+        comp r1,=1
+        jnequ viela
+        load r2,a(fp)
+        load r3,b(fp)
+        out r2,=crt
+        out r3,=crt
+        exit sp,=4
+viela   load r1,n(fp)
+        sub r1,=1
+        push sp,r1
+        push sp,a(fp)
+        push sp,c(fp)
+        push sp,b(fp)
+        call sp, siirra
+        load r2,a(fp)
+        load r3,b(fp)
+        out r2,=crt
+        out r3,=crt
+        load r1,n(fp)
+        sub r1,=1
+        push sp,r1
+        push sp,c(fp)
+        push sp,b(fp)
+        push sp,a(fp)
+        call sp, siirra
+        exit sp,=4
+

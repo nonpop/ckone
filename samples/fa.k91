@@ -1,0 +1,49 @@
+R	DC	24
+T	DC	0
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; ohjelma fA - trivial function example
+;   print result (1025) at end
+;
+main    LOAD  R1,=1 ; retain this R1
+
+	; T = fA(200, R)
+        PUSH  SP,=0 ; space for return value
+        PUSH  SP, =200
+        PUSH  SP, R
+        CALL  SP, fA
+        POP   SP, R2
+        STORE R2, T 
+
+        ADD   R1, T
+        OUT   R1, =CRT	
+        SVC   SP, =HALT
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; fA - compute trivial function
+;    parX: int call-by-value
+;    parY: int call-by-value
+;    ret retfA: int
+;    
+
+retfA   EQU  -4 ; relative to FP
+parX    EQU  -3
+parY    EQU  -2
+locZ    EQU  1
+
+fA      PUSH  SP, =0 ; alloc Z
+        PUSH  SP, R1 ; save R1
+		
+        LOAD  R1,=5; alusta Z
+        STORE R1, locZ (FP)
+
+        LOAD  R1, parX (FP)
+        MUL   R1, locZ (FP)
+        ADD   R1, parY (FP)
+        STORE R1, locZ (FP)
+
+        STORE R1, retfA (FP)
+        
+        POP    SP, R1; restore R1
+        SUB    SP, =1 ; dealloc Z
+        EXIT   SP, =2 ; 2 param.
