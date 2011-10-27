@@ -155,13 +155,13 @@ static FILE* get_device_file (uint32_t dev_num, bool input) {
         return NULL;
 
     if (dev->is_input != input) {
-        ELOG ("Device %d is not an %s device\n",
-                dev_num, input? "input" : "output");
+        ELOG ("Device %s is not an %s device\n",
+                dev->name, input? "input" : "output");
         return NULL;
     }
 
     if (dev->file == NULL)
-        ELOG ("The file for device %d is NULL\n", dev_num);
+        ELOG ("The file for device %s is NULL\n", dev->name);
 
     return dev->file;
 }
