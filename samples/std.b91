@@ -12,4 +12,6 @@ ___symboltable___
 stdout 7
 stdin 6
 halt 11
+stdout myout
+stdin myin
 ___end___

@@ -87,7 +87,10 @@ read_line (
  * Load a program into memory. Also sets FP and SP to match the
  * end of the code segment and the data segment respectively.
  * See also ckone_free(). The first word of the program is written
- * to the location pointed by MMU_BASE.
+ * to the location pointed by MMU_BASE. Finally, if the program's
+ * symbol table contains stdin/stdout symbols, and no overriding
+ * command line arguments were given, setup the program to use
+ * the files given in the program file.
  *
  * @return True if successful, false otherwise.
  */
@@ -188,6 +191,11 @@ ckone_load (
 
         DLOG ("Symbol added: %s = %s\n", name, value);
     }
+    
+    if (!args.stdin_file)
+        symtable_lookup_str ("stdin", &args.stdin_file);
+    if (!args.stdout_file)
+        symtable_lookup_str ("stdout", &args.stdout_file);
 
     return true;
 }

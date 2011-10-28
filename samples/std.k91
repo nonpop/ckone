@@ -1,6 +1,9 @@
 ; read two values from STDIN, multiply them,
 ; and write to STDOUT
 
+stdin def myin
+stdout def myout
+
 in r0, =stdin
 in r1, =stdin
 mul r0, r1
