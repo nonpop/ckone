@@ -195,7 +195,7 @@ extern void ckone_free (s_ckone* kone);
 
 
 /// @cond skip
-const char* argp_program_version = VERSION;
+const char* argp_program_version = "ckone " VERSION;
 
 static char doc[] = 
 "ckone -- a ttk-91 emulator\v"
