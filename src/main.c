@@ -3,6 +3,8 @@
  *
  * The program entry point. Parses the command line arguments and
  * calls functions to initialize and start the emulator.
+ * Used external functions: ckone_init(), ckone_load(), ckone_run(),
+ * ckone_free(), ext_init_devices() and ext_close_devices().
  *
  * The main page of the documentation is also included here.
  */
@@ -76,8 +78,8 @@
  * 
  * The ckone executable consists of two parts: the emulator and the interface. The emulator is built
  * from the files alu.c, cpu.c, ext.c, instr.c, and mmu.c. The interface is built from ckone.c,
- * symtable.c, and main.c. The file log.c is linked in the emulator library, but is not really a part
- * of either.
+ * symtable.c, and main.c. The files args.c and log.c are linked in the emulator library since they
+ * are also used by the test module.
  * 
  * @subsection initialization Initialization
  *

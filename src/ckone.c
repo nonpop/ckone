@@ -2,6 +2,11 @@
  * @file ckone.c
  *
  * Contains code to initialize and run the emulator.
+ * External functions used: symtable_insert() and symtable_clear() to
+ * create/destroy the symbol table and symtable_dump() to print the
+ * contents of it. To get a textual representation of an instruction,
+ * instr_string() is used. The most important, however, is the use of
+ * cpu_step() to advance the emulator.
  */
 
 #include "common.h"
