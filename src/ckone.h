@@ -9,13 +9,6 @@
 #include "log.h"
 
 
-/// The default size for memory.
-#define DEFAULT_MEM_SIZE 64
-
-/// The default number of columns in memory dumps.
-#define DEFAULT_MEM_COLS 4
-
-
 /**
  * The ckone state structure. The contents of this structure
  * define the state of the emulator completely.
@@ -76,6 +69,12 @@ enum e_status_bits {
     SR_P = 1 << 22,         ///< Priviledged mode (unused)
     SR_D = 1 << 21,         ///< Interrupts disabled (unused)
 };
+
+
+extern bool ckone_init (s_ckone* kone);
+extern bool ckone_load (s_ckone* kone, FILE* input);
+extern int ckone_run (s_ckone* kone);
+extern void ckone_free (s_ckone* kone);
 
 
 #endif

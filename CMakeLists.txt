@@ -19,17 +19,21 @@ set (DEFAULT_MEMDUMP_COLUMNS 4)
 set (VERSION 0.9)
 
 
-set (EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
+#set (EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 
 configure_file (
     "${PROJECT_SOURCE_DIR}/config.h.in"
     "${PROJECT_BINARY_DIR}/config.h"
     )
 
-include_directories("${PROJECT_BINARY_DIR}")
+include_directories("${PROJECT_BINARY_DIR}" "${PROJECT_SOURCE_DIR}/src")
 
 set(CMAKE_C_FLAGS "-std=c99 -Wall -Wextra -Werror -pedantic -g3")
 
-add_subdirectory(src)
-add_subdirectory(test)
+
+add_library(emu STATIC src/alu.c src/args.c src/cpu.c src/ext.c src/instr.c src/log.c src/mmu.c src/symtable.c)
+add_executable(ckone src/ckone.c src/main.c)
+target_link_libraries(ckone emu)
+add_executable(ckone_tests test/main.c test/test_alu.c test/test_cpu.c test/test_instr.c test/test_mmu.c test/util.c)
+target_link_libraries(ckone_tests emu)
 
