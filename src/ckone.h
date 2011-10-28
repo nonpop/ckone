@@ -1,12 +1,11 @@
+/**
+ * @file ckone.h
+ *
+ * The main state structure.
+ */
+
 #ifndef CKONE_H
 #define CKONE_H
-
-
-#include <stdio.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <stddef.h>
-#include "log.h"
 
 
 /**
@@ -69,12 +68,6 @@ enum e_status_bits {
     SR_P = 1 << 22,         ///< Priviledged mode (unused)
     SR_D = 1 << 21,         ///< Interrupts disabled (unused)
 };
-
-
-extern bool ckone_init (s_ckone* kone);
-extern bool ckone_load (s_ckone* kone, FILE* input);
-extern int ckone_run (s_ckone* kone);
-extern void ckone_free (s_ckone* kone);
 
 
 #endif

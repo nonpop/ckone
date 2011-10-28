@@ -1,8 +1,12 @@
+/**
+ * @file ext.h
+ *
+ * The public functions for external device operations.
+ */
+
 #ifndef EXT_H
 #define EXT_H
 
-
-struct s_ckone;
 
 extern void ext_init_devices ();
 extern void ext_close_devices ();

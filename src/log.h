@@ -1,3 +1,10 @@
+/**
+ * @file log.h
+ *
+ * The logging API. The xLOG macros should be used
+ * for writing different kinds of logging messages.
+ */
+
 #ifndef LOG_H
 #define LOG_H
 

@@ -10,16 +10,16 @@
  * instr.c to decode instructions.
  */
 
-
-#include "cpu.h"
-#include "mmu.h"
+#include "common.h"
 #include "instr.h"
 #include "alu.h"
+#include "mmu.h"
 #include "ext.h"
 #include "args.h"
 
 
 /**
+ * @internal
  * Fetch the next instruction to IR.
  *
  * Affects: MAR, MBR, PC, IR
@@ -39,6 +39,7 @@ cpu_fetch_instr (
 
 
 /**
+ * @internal
  * Calculates the second operand for the current instruction 
  * and stores it to the TR register.
  *
@@ -95,6 +96,7 @@ cpu_calculate_second_operand (
 
 
 /**
+ * @internal
  * Execute a STORE or LOAD command.
  *
  * Affects: 
@@ -119,8 +121,9 @@ cpu_exec_store_load (
 
 
 /**
+ * @internal
  * Execute an IN or OUT command.
- * See ext_in (), ext_out ().
+ * See ext_in(), ext_out().
  *
  * Affects: Rx (IN)
  *
@@ -139,6 +142,7 @@ cpu_exec_in_out (
 
 
 /**
+ * @internal
  * Execute an arithmetic/logic command.
  *
  * Affects: ALU_IN1, ALU_IN2, ALU_OUT, Rx
@@ -179,6 +183,7 @@ cpu_exec_arithmetic (
 
 
 /**
+ * @internal
  * Execute a COMP command.
  *
  * Affected status bits: ::SR_L, ::SR_E, ::SR_G
@@ -203,6 +208,7 @@ cpu_exec_comp (
 
 
 /**
+ * @internal
  * Execute a jump command.
  *
  * Affects: PC
@@ -241,13 +247,19 @@ cpu_exec_jump (
 
 
 /**
+ * @internal
  * Push PC and FP onto the stack and set FP = sp.
  *
  * Affects: MAR, MBR, Rx, FP
  *
  * Affected status bits: ::SR_M
  */
-static void push_pc_fp (s_ckone* kone, e_register sp) {
+static void 
+push_pc_fp (
+        s_ckone* kone,          ///< The state structure.
+        e_register sp           ///< The stack pointer.
+        ) 
+{
     kone->mar = kone->r[sp] + 1;
     kone->mbr = kone->pc;
     mmu_write (kone);
@@ -260,13 +272,19 @@ static void push_pc_fp (s_ckone* kone, e_register sp) {
 
 
 /**
+ * @internal
  * Pop FP and PC off the stack.
  *
  * Affects: MAR, MBR, Rx, FP
  * 
  * Affected status bits: ::SR_M
  */
-static void pop_fp_pc (s_ckone* kone, e_register sp) {
+static void 
+pop_fp_pc (
+        s_ckone* kone,          ///< The state structure.
+        e_register sp           ///< The stack pointer.
+        ) 
+{
     kone->mar = kone->r[sp];
     mmu_read (kone);
     int32_t fp = kone->mbr;
@@ -279,6 +297,7 @@ static void pop_fp_pc (s_ckone* kone, e_register sp) {
 
 
 /**
+ * @internal
  * Execute a CALL command.
  *
  * Affects: MAR, MBR, Rx, FP, PC
@@ -296,6 +315,7 @@ cpu_exec_call (
 
 
 /**
+ * @internal
  * Execute an EXIT command.
  *
  * Affects: MAR, MBR, Rx, FP, PC
@@ -314,6 +334,7 @@ cpu_exec_exit (
 
 
 /**
+ * @internal
  * Push a value onto the stack.
  *
  * Affects: MAR, MBR, Rsp
@@ -335,6 +356,7 @@ cpu_push_value (
 
 
 /**
+ * @internal
  * Push a register (R0 to R7) onto the stack. It first stores the value 
  * in Rreg onto the stack and then increases Rsp, so in case these are 
  * the same register, the pushed value will be the original value.
@@ -355,6 +377,7 @@ cpu_push_register (
 
 
 /**
+ * @internal
  * Pop a value off the stack and store it to a register.
  * It first assigns the value to Rreg and then decreases Rsp, so
  * in case these are the same register, the popped value will be
@@ -379,9 +402,10 @@ cpu_pop_register (
 
 
 /**
+ * @internal
  * Execute a PUSH command.
  *
- * See cpu_push_value ()
+ * See cpu_push_value().
  */
 static void 
 cpu_exec_push (
@@ -393,9 +417,10 @@ cpu_exec_push (
 
 
 /**
+ * @internal
  * Execute a POP command.
  *
- * See cpu_pop_register ()
+ * See cpu_pop_register().
  */
 static void 
 cpu_exec_pop (
@@ -407,10 +432,11 @@ cpu_exec_pop (
 
 
 /**
+ * @internal
  * Execute a PUSHR command.
  *
  * Pushes the registers from R0 to R6 in order 
- * using cpu_push_register ().
+ * using cpu_push_register().
  */
 static void 
 cpu_exec_pushr (
@@ -425,10 +451,11 @@ cpu_exec_pushr (
 
 
 /**
+ * @internal
  * Execute a POPR command.
  *
  * Pops the registers from R6 to R0 in order 
- * using cpu_pop_register ().
+ * using cpu_pop_register().
  */
 static void 
 cpu_exec_popr (
@@ -443,8 +470,9 @@ cpu_exec_popr (
 
 
 /**
+ * @internal
  * Execute a SVC command.
- * See ext_svc ().
+ * See ext_svc().
  *
  * Affects: MAR, MBR, Rx, FP
  *
@@ -469,6 +497,7 @@ cpu_exec_svc (
 
 
 /**
+ * @internal
  * Execute the current instruction. Assumes that the instruction has been
  * fetched and the second operand has been calculated and stored into TR.
  */

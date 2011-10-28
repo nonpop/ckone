@@ -4,11 +4,11 @@
  * Contains code which emulates the MMU.
  */
 
-
-#include "mmu.h"
+#include "common.h"
 
 
 /**
+ * @internal
  * Calculate the physical address of the given logical address.
  *
  * @return The physical (i.e. absolute) address.
@@ -24,6 +24,7 @@ calculate_paddr (
 
 
 /**
+ * @internal
  * Check if the given physical address is within the
  * limits of MMU_BASE and MMU_LIMIT.
  *

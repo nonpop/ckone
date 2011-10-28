@@ -4,14 +4,11 @@
  * Contains code to initialize and run the emulator.
  */
 
-
-#include <stdlib.h>
-#include <string.h>
-#include "ckone.h"
-#include "args.h"
+#include "common.h"
+#include "instr.h"
 #include "cpu.h"
 #include "symtable.h"
-#include "instr.h"
+#include "args.h"
 
 
 /**
@@ -58,6 +55,7 @@ ckone_init (
 
 
 /**
+ * @internal
  * Read a line from the given file. Also update the line number variable.
  *
  * @return The line read, or NULL if there was an error.
@@ -84,7 +82,6 @@ read_line (
  * end of the code segment and the data segment respectively.
  * See also ckone_free().
  *
- * @param input The input file.
  * @return True if successful, false otherwise.
  */
 bool 
@@ -98,7 +95,7 @@ ckone_load (
     int linenum = 0;
     char* line;
 
-    /// @cond private
+    /// @cond skip
     // little macros to make things easier to read
 #define READ_CHECK() if (!(line = read_line (input, &linenum))) return false
 #define EXPECTED(what) { \
@@ -107,7 +104,7 @@ ckone_load (
 }
     /// @endcond
 
-    // header
+    // identifier
     READ_CHECK ();
     if (strcmp (line, "___b91___\n"))
         EXPECTED ("___b91___");
@@ -209,6 +206,7 @@ ckone_free (
 
 
 /**
+ * @internal
  * Print the contents of the emulator memory. The number of columns
  * is determined by a command line argument.
  */
@@ -247,6 +245,7 @@ ckone_dump_memory (
 
 
 /**
+ * @internal
  * Print a number in both hexadecimal and decimal formats.
  */
 static void 
@@ -259,6 +258,7 @@ print_hex_dec (
 
 
 /**
+ * @internal
  * Print the contents of the registers.
  */
 static void 
@@ -306,6 +306,7 @@ ckone_dump_registers (
 
 
 /**
+ * @internal
  * Print the current state. Prints the registers, the
  * next instruction (if in stepping mode), the symbol
  * table (if enabled by a command line argument), and
@@ -337,8 +338,11 @@ ckone_dump (
 
 
 /**
+ * @internal
  * Pause execution after an instruction. The user can either continue
  * to the next instruction, show the symbol table, or quit.
+ *
+ * @return True if the simulation should continue.
  */
 static bool 
 pause (
@@ -370,7 +374,8 @@ pause (
 /**
  * Start emulation. The emulation will run until an error occurs
  * or the CPU halts. If stepping mode is on, the emulation will pause
- * between every instruction.
+ * between every instruction. In this case the user can also choose
+ * to stop any time the emulation has paused.
  *
  * @return EXIT_FAILURE if something went wrong, EXIT_SUCCESS otherwise.
  */

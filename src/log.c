@@ -4,10 +4,8 @@
  * A simple logger.
  */
 
-
 #include <stdarg.h>
-#include <stdio.h>
-#include "log.h"
+#include "common.h"
 #include "args.h"
 
 

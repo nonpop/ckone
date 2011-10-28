@@ -4,13 +4,12 @@
  * Routines for the ALU operations.
  */
 
-#include "ckone.h"
+#include "common.h"
 
-
-/// @cond private
 
 /**
- * Operation types for do_and_check ().
+ * @internal
+ * Operation types for do_and_check().
  */
 typedef enum {
     ADD, SUB, MUL
@@ -18,6 +17,7 @@ typedef enum {
 
 
 /**
+ * @internal
  * Perform an operation (add, subtract, multiply), check
  * whether the result overflows, and set the overflow bit
  * of SR if it does.
@@ -59,11 +59,11 @@ do_and_check (
 }
 
 
-// Macros for debugging output
+/// @cond skip
+// Macros to show some debug messages
 #define MSG(op) DLOG ("Calculating 0x%x " op " 0x%x (%d " op " %d)\n", \
                       kone->alu_in1, kone->alu_in2, kone->alu_in1, kone->alu_in2);
 #define RES() DLOG ("Result = 0x%x (%d)\n", kone->alu_out, kone->alu_out)
-
 /// @endcond
 
 

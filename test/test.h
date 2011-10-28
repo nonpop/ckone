@@ -2,10 +2,6 @@
 #define TEST_H
 
 
-#include <stdio.h>
-#include <string.h>
-
-
 #ifdef TEST_MAIN
     unsigned int test_tests_succeeded;
     unsigned int test_tests_total;

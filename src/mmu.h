@@ -1,8 +1,11 @@
+/**
+ * @file mmu.h
+ *
+ * The public MMU functions.
+ */
+
 #ifndef MMU_H
 #define MMU_H
-
-
-#include "ckone.h"
 
 
 extern void mmu_read (s_ckone* kone);

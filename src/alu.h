@@ -1,8 +1,11 @@
+/**
+ * @file alu.h
+ *
+ * The public ALU functions.
+ */
+
 #ifndef ALU_H
 #define ALU_H
-
-
-#include "ckone.h"
 
 
 extern void alu_add (s_ckone* kone);

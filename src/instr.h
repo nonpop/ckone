@@ -1,12 +1,12 @@
+/**
+ * @file instr.h
+ *
+ * Instruction opcodes, addressing modes, and the public 
+ * instruction manipulation functions.
+ */
+
 #ifndef INSTR_H
 #define INSTR_H
-
-
-#include <stdint.h>
-#include <stddef.h>
-#include "ckone.h"
-
-struct s_ckone;
 
 
 /**

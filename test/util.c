@@ -1,5 +1,4 @@
-#include <string.h>
-#include "ckone.h"
+#include "common.h"
 
 
 /**

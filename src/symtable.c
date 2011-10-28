@@ -4,17 +4,11 @@
  * Code to create and search a symbol table.
  */
 
+#include "common.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdbool.h>
-#include "log.h"
-
-
-/// @cond private
 
 /**
+ * @internal
  * One node in the linked list making up the symbol table.
  */
 typedef struct s_symtable {
@@ -27,14 +21,14 @@ typedef struct s_symtable {
 
 
 /**
+ * @internal
  * The first node of the symbol table.
  */
 static s_symtable* symtable = NULL;
 
-/// @endcond
-
 
 /**
+ * @internal
  * Allocate a new symbol table node.
  *
  * @return NULL if the allocation failed.
@@ -114,6 +108,7 @@ symtable_insert (
 
 
 /**
+ * @internal
  * Find a node in the table by its name.
  *
  * @return NULL if no symbol with this name exists in the table.

@@ -1,12 +1,8 @@
-#include <string.h>
+#include "common.h"
 #include "test.h"
 #include "util.h"
 #include "cpu.h"
 #include "instr.h"
-
-
-extern void cpu_calculate_second_operand (s_ckone* kone);
-extern void cpu_fetch_instr (s_ckone* kone);
 
 
 void test_cpu () {

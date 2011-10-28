@@ -1,3 +1,4 @@
+#include "common.h"
 #define TEST_MAIN
 #include "test.h"
 #include "args.h"

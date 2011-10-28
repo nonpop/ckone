@@ -8,18 +8,15 @@
  * from instr.c to decode instructions.
  */
 
-
-#include <stdio.h>
-#include <string.h>
 #include <time.h>
-#include "ckone.h"
+#include "common.h"
 #include "instr.h"
 #include "mmu.h"
 #include "args.h"
 
 
-/// @cond private
 /**
+ * @internal
  * A structure containing information about a device.
  */
 typedef struct {
@@ -32,6 +29,7 @@ typedef struct {
 
 
 /**
+ * @internal
  * The available device numbers.
  */
 enum e_device_number {
@@ -47,6 +45,7 @@ enum e_device_number {
 
 
 /**
+ * @internal
  * The available devices. This must be initialized with
  * ext_init_devices () before starting the emulation.
  */
@@ -57,8 +56,6 @@ static s_device devices[] = {
     { 7, "STDOUT", NULL, false },
     { -1, "(Unknown)", NULL, false },
 };
-
-/// @endcond
 
 
 /**
@@ -114,6 +111,7 @@ ext_close_devices (
 
 
 /**
+ * @internal
  * Read an integer from the given file. If the file is stdin,
  * it also prints a prompt.
  *
@@ -148,6 +146,7 @@ read_input (
 
 
 /**
+ * @internal
  * Write an integer to the given file. If the file is stdout,
  * it also prints a prefix telling where the value came from.
  */
@@ -165,6 +164,7 @@ write_output (
 
 
 /**
+ * @internal
  * Get data for the given device.
  *
  * @return The device data. NULL if the device does not exist.
@@ -188,6 +188,7 @@ get_device (
 
 
 /**
+ * @internal
  * Get the name of a device.
  *
  * @return The name of the device.
@@ -206,6 +207,7 @@ get_device_name (
 
 
 /**
+ * @internal
  * Get the file of a device.
  *
  * @return The device file. NULL if the device does not exist or if
@@ -289,6 +291,7 @@ ext_out (
 
 
 /**
+ * @internal
  * Halts the machine.
  *
  * @return The number of arguments for this SVC, which is 0.
@@ -308,6 +311,7 @@ svc_halt (
 
 
 /**
+ * @internal
  * Read a value from KBD and store it to the location given
  * on the stack.
  *
@@ -349,6 +353,7 @@ svc_read (
 
 
 /**
+ * @internal
  * Write a value given on the stack to CRT.
  *
  * @return The number of arguments for this SVC, which is 1.
@@ -378,6 +383,7 @@ svc_write (
 
 
 /**
+ * @internal
  * Get the current time and store it to the locations given on the stack.
  *
  * @return The number of arguments for this SVC, which is 3.
@@ -420,6 +426,7 @@ svc_time (
 
 
 /**
+ * @internal
  * Get the current date and store it to the locations given on the stack.
  *
  * NOTE: At least TitoKone 1.203 seems to report the month as one too small.
@@ -475,7 +482,11 @@ svc_date (
  *
  * Affected status bits: ::SR_M (not HALT)
  */
-int32_t ext_svc (s_ckone* kone) {
+int32_t 
+ext_svc (
+        s_ckone* kone       ///< The state structure.
+        ) 
+{
     switch (kone->tr) {
         case 11: return svc_halt (kone);
         case 12: return svc_read (kone);

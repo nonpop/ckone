@@ -1,3 +1,9 @@
+/**
+ * @file symtable.h
+ *
+ * The public symbol table manipulation functions.
+ */
+
 #ifndef SYMTABLE_H
 #define SYMTABLE_H
 

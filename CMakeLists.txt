@@ -19,7 +19,7 @@ set (DEFAULT_MEMDUMP_COLUMNS 4)
 set (VERSION 0.9)
 
 
-#set (EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
+set (EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 
 configure_file (
     "${PROJECT_SOURCE_DIR}/config.h.in"
@@ -36,4 +36,14 @@ add_executable(ckone src/ckone.c src/main.c)
 target_link_libraries(ckone emu)
 add_executable(ckone_tests test/main.c test/test_alu.c test/test_cpu.c test/test_instr.c test/test_mmu.c test/util.c)
 target_link_libraries(ckone_tests emu)
+
+find_package(Doxygen)
+if(DOXYGEN_FOUND)
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+    add_custom_target(doc
+        ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        COMMENT "Generating documentation with Doxygen" VERBATIM
+        )
+endif(DOXYGEN_FOUND)
 

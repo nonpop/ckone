@@ -5,19 +5,20 @@
  * calls functions to initialize and start the emulator.
  */
 
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <argp.h>
-#include "args.h"
-#include "log.h"
-#include "ckone.h"
-#include "config.h"
+#include "common.h"
 #include "ext.h"
+#include "args.h"
+#include "config.h"
 
 
-/// @cond private
+extern bool ckone_init (s_ckone* kone);
+extern bool ckone_load (s_ckone* kone, FILE* input);
+extern int ckone_run (s_ckone* kone);
+extern void ckone_free (s_ckone* kone);
+
+
+/// @cond skip
 const char* argp_program_version = VERSION;
 
 static char doc[] = 
@@ -48,9 +49,14 @@ static struct argp_option options[] = {
     { 0, 0, 0, 0, 0, 0 }
 };
 
+/// @endcond
+
 
 /**
+ * @internal
  * The option parser. Used by Argp.
+ *
+ * @return See the Argp documentation.
  */
 static error_t
 parse_opt (
@@ -114,10 +120,13 @@ parse_opt (
     return 0;
 }
 
+/// @cond skip
 static struct argp argp = { options, parse_opt, args_doc, doc, 0, 0, 0 };
+/// @endcond
 
 
 /**
+ * @internal
  * Convert a boolean to a "yes" or "no" string.
  *
  * @return A "yes" or "no" string.
@@ -130,15 +139,15 @@ bool_to_yesno (
     return value? "yes" : "no";
 }
 
-/// @endcond
-
 
 /**
+ * @internal
  * Parse and validate the command line arguments.
  *
  * @return True if the parsing and validation succeeded.
  */
-bool parse_args (
+static bool 
+parse_args (
         int argc,       ///< The size of the argv array.
         char** argv     ///< The actual arguments.
         ) 
@@ -212,6 +221,9 @@ bool parse_args (
 
 /**
  * The program entry point.
+ *
+ * @return EXIT_SUCCESS if the program terminated normally, or
+ *         EXIT_FAILURE if something went wrong.
  */
 int 
 main (

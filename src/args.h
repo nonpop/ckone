@@ -1,10 +1,12 @@
+/**
+ * @file args.h
+ *
+ * The structure which contains the options adjustable by
+ * command line arguments.
+ */
+
 #ifndef ARGS_H
 #define ARGS_H
-
-
-#include <stdbool.h>
-#include <stdint.h>
-#include <stddef.h>
 
 
 /**

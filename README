@@ -1,0 +1,12 @@
+Compilation
+===========
+
+The project uses CMake to generate Makefiles. The compilation steps are,
+assuming you are in the project root directory (where this file is located):
+ - `mkdir build && cd build`
+ - `cmake ..`
+ - `make`  (to see the actual compilation commands, replace with `VERBOSE=1 make`)
+This will produce two executables in the `bin` subdirectory: `ckone` and `ckone_tests`.
+The first one is the emulator itself and the second one is a bunch of tests.
+
+

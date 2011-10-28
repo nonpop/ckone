@@ -4,27 +4,27 @@
  * Instruction decoding/encoding functions.
  */
 
-
-#include <stdio.h>
+#include "common.h"
 #include "instr.h"
-#include "ckone.h"
 
-
-/// @cond private
 
 /**
+ * @internal 
  * Connects an opcode with its name.
  */
 typedef struct {
-    e_opcode opcode;
-    const char* name;
+    e_opcode opcode;        ///< The operation code.
+    const char* name;       ///< The operation name.
 } s_op_name;
 
 
-/// Make an opcode, opcode-name pair.
+/// @cond skip
+// Make an opcode, opcode-name pair.
 #define I(instr) { instr, #instr }
+/// @endcond
 
 /**
+ * @internal
  * All opcodes with their names.
  */
 static s_op_name op_names[] = {
@@ -40,11 +40,12 @@ static s_op_name op_names[] = {
     { NOP, NULL }
 };
 
-/// @endcond
-
 
 /**
+ * @internal
  * Return the name of the given operation.
+ *
+ * @return The name of the operation.
  */
 static const char* 
 op_name (
@@ -65,6 +66,8 @@ op_name (
 
 /**
  * Extract the opcode of an instruction.
+ *
+ * @return The operation code of the instruction.
  */
 e_opcode 
 instr_opcode (
@@ -77,6 +80,8 @@ instr_opcode (
 
 /**
  * Extract the first operand of an instruction.
+ *
+ * @return The first operand of the instruction.
  */
 e_register 
 instr_first_operand (
@@ -89,6 +94,8 @@ instr_first_operand (
 
 /**
  * Extract the addressing mode of an instruction.
+ *
+ * @return The instruction addressing mode.
  */
 e_addr_mode 
 instr_addr_mode (
@@ -101,6 +108,8 @@ instr_addr_mode (
 
 /**
  * Extract the indexing register of an instruction.
+ *
+ * @return The indexing register of the instruction.
  */
 e_register 
 instr_index_reg (
@@ -113,6 +122,8 @@ instr_index_reg (
 
 /**
  * Extract the address/constant part of an instruction.
+ *
+ * @return The constant part of the instruction.
  */
 int16_t 
 instr_addr (
@@ -125,6 +136,8 @@ instr_addr (
 
 /**
  * Assemble an instruction from its parts.
+ *
+ * @return The complete instruction.
  */
 int32_t 
 make_instr (
@@ -140,7 +153,10 @@ make_instr (
 
 
 /**
+ * @internal
  * Get the name of the given register.
+ *
+ * @return The name of the register (R0-R5, SP, FP).
  */
 static char* 
 reg_name (

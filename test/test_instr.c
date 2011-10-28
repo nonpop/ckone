@@ -1,3 +1,4 @@
+#include "common.h"
 #include "test.h"
 #include "instr.h"
 

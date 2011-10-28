@@ -1,5 +1,4 @@
-#include <string.h>
-#include <stdlib.h>
+#include "common.h"
 #include "test.h"
 #include "util.h"
 #include "mmu.h"
