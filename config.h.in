@@ -1,2 +1,5 @@
+// This file is processed by cmake to produce the config.h file
 #define VERSION "@VERSION@"
+#define DEFAULT_MEMORY_SIZE @DEFAULT_MEMORY_SIZE@
+#define DEFAULT_MEMDUMP_COLUMNS @DEFAULT_MEMDUMP_COLUMNS@
 
