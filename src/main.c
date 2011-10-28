@@ -374,14 +374,14 @@ parse_args (
         ELOG ("mmu_base must be non-negative\n", 0);
         return false;
     }
-    if ((size_t)args.mmu_base >= args.mem_size) {
+    if (args.mmu_base >= args.mem_size) {
         ELOG ("mmu_base must be less than mem_size\n", 0);
         return false;
     }
     if (args.mmu_limit < 0)
         args.mmu_limit = args.mem_size - args.mmu_base;
 
-    if ((size_t)(args.mmu_base + args.mmu_limit) > args.mem_size) {
+    if (args.mmu_base + args.mmu_limit > args.mem_size) {
         ELOG ("mmu_base + mmu_limit must be at most mem_size\n", 0);
         return false;
     }

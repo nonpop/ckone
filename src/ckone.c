@@ -225,7 +225,7 @@ ckone_dump_memory (
 {
     int cols = args.mem_cols;
 
-    printf ("Memory size: %u words, MMU base: 0x%08x (%d), MMU limit: %d words\n",
+    printf ("Memory size: %d words, MMU base: 0x%08x (%d), MMU limit: %d words\n",
             kone->mem_size, kone->mmu_base, kone->mmu_base, kone->mmu_limit);
     printf ("Accessible memory area: 0x%08x - 0x%08x (%d - %d)\n",
             kone->mmu_base, kone->mmu_base + kone->mmu_limit - 1,

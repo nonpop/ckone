@@ -16,7 +16,7 @@
 typedef struct {
     char* stdin_file;       ///< The file where the STDIN device gets its data from.
     char* stdout_file;      ///< The file where the STDOUT device writes its data to.
-    size_t mem_size;        ///< The size of the emulator memory, in words (1 word = 4 bytes).
+    int32_t mem_size;       ///< The size of the emulator memory, in words (1 word = 4 bytes).
     int32_t mmu_base;       ///< The value of the MMU_BASE register (s_ckone::mmu_base).
     int32_t mmu_limit;      ///< The value of the MMU_LIMIT register (s_ckone::mmu_limit).
     bool zero;              ///< Whether the memory and registers should be zeroed before emulation begins.
