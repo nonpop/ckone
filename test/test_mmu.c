@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "test.h"
 #include "util.h"
-#include "../src/mmu.h"
+#include "mmu.h"
 
 
 void test_mmu () {

@@ -1,6 +1,6 @@
 #include <string.h>
 #include "test.h"
-#include "../src/alu.h"
+#include "alu.h"
 
 
 void test_alu() {

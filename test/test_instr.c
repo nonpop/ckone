@@ -1,5 +1,5 @@
 #include "test.h"
-#include "../src/instr.h"
+#include "instr.h"
 
 
 void test_instr () {

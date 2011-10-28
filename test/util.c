@@ -1,5 +1,5 @@
 #include <string.h>
-#include "../src/ckone.h"
+#include "ckone.h"
 
 
 /**

@@ -1,6 +1,6 @@
 #define TEST_MAIN
 #include "test.h"
-#include "../src/args.h"
+#include "args.h"
 
 
 extern void test_instr ();

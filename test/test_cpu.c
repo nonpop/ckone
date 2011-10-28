@@ -1,8 +1,8 @@
 #include <string.h>
 #include "test.h"
 #include "util.h"
-#include "../src/cpu.h"
-#include "../src/instr.h"
+#include "cpu.h"
+#include "instr.h"
 
 
 extern void cpu_calculate_second_operand (s_ckone* kone);
