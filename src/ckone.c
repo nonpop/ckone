@@ -90,7 +90,9 @@ read_line (
  * to the location pointed by MMU_BASE. Finally, if the program's
  * symbol table contains stdin/stdout symbols, and no overriding
  * command line arguments were given, setup the program to use
- * the files given in the program file.
+ * the files given in the program file. @note This only works if
+ * the stdin/stdout symbols with the filenames come after the
+ * stdin/stdout symbols with the device numbers in the file.
  *
  * @return True if successful, false otherwise.
  */

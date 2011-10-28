@@ -99,14 +99,22 @@
  * to the MMU base register), the way Titokone does.
  *
  * Then the external devices (KBD, CRT, STDIN and STDOUT) are initialized. KBD is connected with the
- * standard input and CRT with the standard output. If the <code>--stdio</code> option was used, then
+ * standard input and CRT with the standard output. If the <code>--stdin</code> option was used, then
  * the given file is opened and assigned to the STDIN device. If the option was not used, but the
  * program's symbol table contains the symbol <code>stdin</code>, then the value of that symbol is
- * used. If this doesn't apply either, the file <code>stdin</code> in the current working directory
- * is used. The same goes for the STDOUT device (<code>--stdout</code> option). The program tries to
- * open both of these files regardless of whether they are going to be used or not. This means two
- * things. First, if the stdin file does not exist, a warning will be printed. Second, the stdout
- * file will be created. These are minor annoyances, but they should be fixed some day.
+ * used. <i>This only works correctly if the stdin symbol with the filename comes after the stdin
+ * symbol with the device number in the input file.</i> The fact that the symbol table can contain two 
+ * symbols with the same name is silly, but that's how it is. If the filename symbol happens to come
+ * before the device number symbol, you have to use the <code>--stdin</code> option to use the correct
+ * file.
+ *
+ * If the <code>--stdin</code> option is not used and the program file does not define a stdin file, the
+ * file <code>stdin</code> in the current working directory is used. Everything said for the STDIN device
+ * also applies for the STDOUT device (<code>--stdout</code> option).
+ *
+ * The program tries to open both of these files regardless of whether they are going to be used or not.
+ * This means two things. First, if the stdin file does not exist, a warning will be printed. Second, the 
+ * stdout file will be created. These are minor annoyances, but they should be fixed some day.
  *
  * @subsection emulation Emulation
  *
