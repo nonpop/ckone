@@ -21,7 +21,7 @@ set (DEFAULT_MEMDUMP_BASE 10)
 
 
 # Program version; do not edit this
-set (VERSION 0.9)
+set (VERSION 1.0)
 
 
 set (EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)

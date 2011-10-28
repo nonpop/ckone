@@ -6,7 +6,8 @@
  * Used external functions: ckone_init(), ckone_load(), ckone_run(),
  * ckone_free(), ext_init_devices() and ext_close_devices().
  *
- * The main page of the documentation is also included here.
+ * The main page of the documentation is also included here. Doxygen
+ * will render a nice html page from it; see the README file.
  */
 
 
