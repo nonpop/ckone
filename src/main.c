@@ -92,7 +92,7 @@
  *
  * After this the program is loaded into memory using ckone_load(). The program is loaded so that the 
  * first word is put to the memory address indicated by the MMU base register, which may not be zero.
- * The FP and SP registers are set to point to the end of data and code segments respectively (relative
+ * The FP and SP registers are set to point to the end of code and data segments respectively (relative
  * to the MMU base register), the way Titokone does.
  *
  * Then the external devices (KBD, CRT, STDIN and STDOUT) are initialized. KBD is connected with the
@@ -100,7 +100,10 @@
  * the given file is opened and assigned to the STDIN device. If the option was not used, but the
  * program's symbol table contains the symbol <code>stdin</code>, then the value of that symbol is
  * used. If this doesn't apply either, the file <code>stdin</code> in the current working directory
- * is used. The same goes for the STDOUT device (<code>--stdout</code> option).
+ * is used. The same goes for the STDOUT device (<code>--stdout</code> option). The program tries to
+ * open both of these files regardless of whether they are going to be used or not. This means two
+ * things. First, if the stdin file does not exist, a warning will be printed. Second, the stdout
+ * file will be created. These are minor annoyances, but they should be fixed some day.
  *
  * @subsection emulation Emulation
  *
@@ -113,8 +116,9 @@
  * option and the number base can be changed with the <code>--base</code> option. If the 
  * <code>--show-symtable</code> flag was set, each dump will also contain the contents of the symbol table.
  *
- * Each instruction is executed in the following steps.
- *  -# The MMU is told to fetch the next instruction from the memory address given by the PC register.
+ * Each instruction is executed in the following steps:
+ *  -# The MMU is told to fetch the next instruction from the memory address given by the PC register,
+ *     and after that the PC is incremented by one.
  *  -# The second operand of the instruction is calculated. First the contents of the index register
  *     (if some other than R0) is added to the constant part of the instruction. Then, if the addressing
  *     mode is not IMMEDIATE, a new value will be retrieved from that location. If the addressing
@@ -138,7 +142,7 @@
  * pushing the PC and FP registers on the stack and, when the call exits, they are popped back and a
  * proper amount is subtracted from SP to remove the arguments from the stack. The operations which
  * perform I/O will set the invalid-memory-access bit of SR if an I/O error occurs. The SVC HALT
- * routine is the only way to stop a program without an error occurring.
+ * routine is the only way to stop a program without signaling an error.
  *
  * The rest of the operations (STORE, LOAD, COMP, the jumps, and stack operations) are all defined in cpu.c.
  * 

@@ -55,14 +55,14 @@ typedef enum {
  * The status register bits.
  */
 enum e_status_bits {
-    SR_G = 1 << 31,         ///< The first operand was greater than the second in a COMP.
-    SR_E = 1 << 30,         ///< The operands were equal in a COMP.
-    SR_L = 1 << 29,         ///< The first operand was less than the second in a COMP.
+    SR_G = 1 << 31,         ///< The first operand was greater than the second in the last COMP.
+    SR_E = 1 << 30,         ///< The operands were equal in the last COMP.
+    SR_L = 1 << 29,         ///< The first operand was less than the second in the last COMP.
     SR_O = 1 << 28,         ///< The result of an arithmetic operation did not fit into an integer.
     SR_Z = 1 << 27,         ///< A division by zero has occurred.
     SR_U = 1 << 26,         ///< An unknown instruction opcode was encountered.
     SR_M = 1 << 25,         ///< The program tried to access memory beyond its limits. Trying to
-                            ///< access an invalid device is also counted in this.
+                            ///< access an invalid device also sets this.
     SR_I = 1 << 24,         ///< Device interrupt (unused)
     SR_S = 1 << 23,         ///< Supervisor call (unused)
     SR_P = 1 << 22,         ///< Priviledged mode (unused)
