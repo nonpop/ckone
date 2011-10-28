@@ -223,9 +223,9 @@ ckone_dump_memory (
         s_ckone* kone       ///< The state structure.
         ) 
 {
-    unsigned int cols = args.mem_cols;
+    int cols = args.mem_cols;
 
-    printf ("Memory size: %d words, MMU base: 0x%08x (%d), MMU limit: %d words\n",
+    printf ("Memory size: %u words, MMU base: 0x%08x (%d), MMU limit: %d words\n",
             kone->mem_size, kone->mmu_base, kone->mmu_base, kone->mmu_limit);
     printf ("Accessible memory area: 0x%08x - 0x%08x (%d - %d)\n",
             kone->mmu_base, kone->mmu_base + kone->mmu_limit - 1,
@@ -241,7 +241,7 @@ ckone_dump_memory (
 
     // table header
     printf ("Memory      ");
-    for (size_t i = 0; i < cols; i++) {
+    for (int i = 0; i < cols; i++) {
         if (base == 10)
             printf("%12d", i);         // column offset
         else
@@ -250,11 +250,11 @@ ckone_dump_memory (
     printf ("\n");
 
     printf ("------------");
-    for (size_t i = 0; i < cols; i++)
+    for (int i = 0; i < cols; i++)
         printf("------------");
     printf ("\n");
 
-    for (size_t i = 0; i < kone->mem_size; i++) {
+    for (int32_t i = 0; i < kone->mem_size; i++) {
         if (i % cols == 0) {
             if (base == 10)
                 printf ("%10u |", i);

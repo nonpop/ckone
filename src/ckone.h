@@ -34,7 +34,7 @@ typedef struct {
     int32_t mbr;                ///< The memory buffer register.
 
 
-    size_t mem_size;            ///< The size of the memory array in words (4-byte integers)
+    int32_t mem_size;           ///< The size of the memory array in words (4-byte integers)
     int32_t* mem;               ///< The memory array.
 
     bool halted;                ///< True if the machine has halted.
