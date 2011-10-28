@@ -9,8 +9,8 @@
 #include <stdlib.h>
 #include <argp.h>
 #include "args.h"
-#include "version.h"
 #include "ckone.h"
+#include "config.h"
 
 
 /**

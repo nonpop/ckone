@@ -10,7 +10,7 @@ extern void test_alu ();
 
 
 int main() {
-    args.verbose = true;
+    args.verbosity = 2;
 
     BEGIN_TESTS();
 
