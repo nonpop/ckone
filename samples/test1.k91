@@ -1,7 +1,0 @@
-a dc 42
-load r2, =a
-load r1, (r2)
-add r2, =1
-store r1, @r2
-svc sp, =halt
-
