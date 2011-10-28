@@ -103,10 +103,10 @@
  * the given file is opened and assigned to the STDIN device. If the option was not used, but the
  * program's symbol table contains the symbol <code>stdin</code>, then the value of that symbol is
  * used. <i>This only works correctly if the stdin symbol with the filename comes after the stdin
- * symbol with the device number in the input file.</i> The fact that the symbol table can contain two 
- * symbols with the same name is silly, but that's how it is. If the filename symbol happens to come
- * before the device number symbol, you have to use the <code>--stdin</code> option to use the correct
- * file.
+ * symbol with the device number in the input file.</i> However, Titokone cannot handle this situation
+ * either, so it is probably safe to assume that the file name symbols are always last in the table.
+ * If the filename symbol happens to come before the device number symbol, you have to use the 
+ * <code>--stdin</code> option to use the correct file.
  *
  * If the <code>--stdin</code> option is not used and the program file does not define a stdin file, the
  * file <code>stdin</code> in the current working directory is used. Everything said for the STDIN device
