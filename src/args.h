@@ -19,8 +19,9 @@ typedef struct {
     size_t mem_size;        ///< The size of the emulator memory, in words (1 word = 4 bytes).
     int32_t mmu_base;       ///< The value of the MMU_BASE register (s_ckone::mmu_base).
     int32_t mmu_limit;      ///< The value of the MMU_LIMIT register (s_ckone::mmu_limit).
-    bool clean;             ///< Whether the memory and registers should be zeroed before emulation begins.
+    bool zero;              ///< Whether the memory and registers should be zeroed before emulation begins.
     int mem_cols;           ///< How many columns to print in the memory dumps.
+    bool mem_swap_base;     ///< Use the non-default base (10 or 16) in memory dumps.
     bool step;              ///< If true, the emulator will pause after each instruction.
     int verbosity;          ///< If 0, only the most important messages are shown. If 2, every debug message is shown.
     bool emulate_bugs;      ///< If true, emulate bugs found in TitoKone 1.203.

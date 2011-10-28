@@ -1,0 +1,14 @@
+;alkuehtoinen toistolause
+;while (A>0)
+;  A=A-1;
+
+A DS 1
+
+      IN R1, =KBD
+while STORE R1, A
+      COMP R1, =0
+      JNGRE ulos
+      SUB R1, =1
+      out R1, =CRT
+      JUMP while
+ulos  SVC SP,=HALT

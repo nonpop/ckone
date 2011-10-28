@@ -1,0 +1,14 @@
+;loppuehtoinen toistolause
+;do
+;  A=A-1;
+;while (A>0)
+
+A DS 1
+
+      IN R1, =KBD
+do    SUB R1, =1
+      STORE R1, A
+      out R1, =CRT
+      COMP R1, =0
+      JGRE do
+      SVC SP,=HALT

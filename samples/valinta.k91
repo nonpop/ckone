@@ -1,0 +1,18 @@
+;VALINTA
+;if (A==5)
+;      B=1;
+;    else
+;      B=0;
+
+A DS 1
+B DS 1
+     IN R1, =KBD
+     STORE R1, A
+     COMP R1, =5
+     JEQU yksi
+     LOAD R2, =0
+     JUMP ohi
+yksi load R2, =1
+ohi  STORE R2, B
+out  R2, =CRT
+     SVC SP,=HALT

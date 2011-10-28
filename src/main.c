@@ -86,7 +86,7 @@
  * that, the ::s_ckone structure is initialized using ckone_init(). This allocates memory for the 
  * emulator, the amount of which can be modified using the <code>--mem-size</code> command line argument.
  * It also sets the MMU base and limit registers (adjustable by <code>--mmu-base</code> and 
- * <code>mmu-limit</code> respectively) and, if the <code>--clean</code> flag was used, fills the memory
+ * <code>mmu-limit</code> respectively) and, if the <code>--zero</code> flag was used, fills the memory
  * and other registers with zeroes. The PC and SR registers and the halted -flag are cleared in any case 
  * to reset the CPU.
  *
@@ -110,8 +110,8 @@
  * when the program reads from the KBD device. After the emulator has finished, the contents of memory 
  * and the registers will always be shown. The memory is printed with several memory locations on one
  * row. The length of a row (the number of columns) can be adjusted by using the <code>--columns</code>
- * option. If the <code>--show-symtable</code> flag was set, each dump will also contain the contents
- * of the symbol table.
+ * option and the number base can be changed with the <code>--base</code> option. If the 
+ * <code>--show-symtable</code> flag was set, each dump will also contain the contents of the symbol table.
  *
  * Each instruction is executed in the following steps.
  *  -# The MMU is told to fetch the next instruction from the memory address given by the PC register.
@@ -153,12 +153,13 @@
  * @section tests Testing
  *
  * The other executable, <code>ckone_tests</code> was built from the emulator part of ckone and the files
- * in the <code>test</code> directory. It contains unit-tests for most of the operations, which do not
+ * in the <code>test</code> directory. It contains unit-tests for most of the operations which do not
  * access the external world. The tests produce lots of messages, but they can be ignored if the last line
  * says that all tests were passed. This should be the case.
  *
  * The <code>samples</code> subdirectory contains example programs, most of which are from 
- * http://www.cs.helsinki.fi/group/nodes/kurssit/tito/esimerkit/ . The sources were compiled using Titokone
+ * http://www.cs.helsinki.fi/group/nodes/kurssit/tito/esimerkit/ and 
+ * http://www.cs.helsinki.fi/group/nodes/kurssit/tito/esim_vanhat/ . The sources were compiled using Titokone
  * 1.203. The results when running with Titokone 1.203 and ckone with <code>--emulate-bugs</code> should be
  * identical, with the exception of the registers and memory locations which were not written by the program,
  * and the final PC value (ckone does not make it -1 when halting).
@@ -200,8 +201,17 @@ static struct argp_option options[] = {
     { "mem-size",       'm',    "SIZE",     0, "Use SIZE words of memory (default: " STR(DEFAULT_MEMORY_SIZE) ")", 0 },
     { "mmu-base",       300,    "BASE",     0, "Set mmu_base to BASE (default: 0)", 0 },
     { "mmu-limit",      301,    "LIMIT",    0, "Set mmu_limit to LIMIT (default: mem_size)", 0 },
-    { "clean",          302,    0,          0, "Fill memory and registers with zero before starting", 0 },
-    { "columns",        'c',    "COLS",     0, "Use COLS columns in the memory dump (default: " STR(DEFAULT_MEMDUMP_COLUMNS) ")", 0 },
+    { "zero",           'z',    0,          0, "Fill memory and registers with zero before starting", 0 },
+    { "columns",        'c',    "COLS",     0, "Use COLS columns in memory dumps (default: " STR(DEFAULT_MEMDUMP_COLUMNS) ")", 0 },
+
+#if DEFAULT_MEMDUMP_BASE == 10
+    { "base",           'b',    0,          0, "Use hexadecimal numbers in memory dumps", 0 },
+#elif DEFAULT_MEMDUMP_BASE == 16
+    { "base",           'b',    0,          0, "Use decimal numbers in memory dumps", 0 },
+#else
+#error Invalid value for DEFAULT_MEMDUMP_BASE
+#endif
+
     { "step",           's',    0,          0, "Pause execution after each instruction", 0 },
     { "verbose",        'v',    0,          0, "Be verbose (use twice to be very verbose)", 0 },
     { "emulate-bugs",   400,    0,          0, "Emulate bugs found in TitoKone 1.203", 0 },
@@ -249,11 +259,14 @@ parse_opt (
         case 301:
             arguments->mmu_limit = atoi(arg);
             break;
-        case 302:
-            arguments->clean = true;
+        case 'z':
+            arguments->zero = true;
             break;
         case 'c':
             arguments->mem_cols = atoi(arg);
+            break;
+        case 'b':
+            arguments->mem_swap_base = true;
             break;
         case 400:
             arguments->emulate_bugs = true;
@@ -318,8 +331,9 @@ parse_args (
     args.mem_size = DEFAULT_MEMORY_SIZE;
     args.mmu_base = 0;
     args.mmu_limit = -1;
-    args.clean = false;
+    args.zero = false;
     args.mem_cols = DEFAULT_MEMDUMP_COLUMNS;
+    args.mem_swap_base = false;
     args.step = false;
     args.verbosity = 0;
     args.emulate_bugs = false;
@@ -334,8 +348,9 @@ parse_args (
     DLOG ("mem_size = %d\n", args.mem_size);
     DLOG ("mmu_base = %d\n", args.mmu_base);
     DLOG ("mmu_limit = %d\n", args.mmu_limit);
-    DLOG ("clean = %s\n", bool_to_yesno (args.clean));
+    DLOG ("zero = %s\n", bool_to_yesno (args.zero));
     DLOG ("mem_cols = %d\n", args.mem_cols);
+    DLOG ("mem_swap_base = %s\n", bool_to_yesno (args.mem_swap_base));
     DLOG ("step = %s\n", bool_to_yesno (args.step));
     DLOG ("verbosity = %d\n", args.verbosity);
     DLOG ("emulate_bugs = %s\n", bool_to_yesno (args.emulate_bugs));

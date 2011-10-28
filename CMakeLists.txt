@@ -6,10 +6,15 @@ project(ckone)
 ###################################
 
 # The default emulator memory size (in 4-byte words)
-set (DEFAULT_MEMORY_SIZE 64)
+set (DEFAULT_MEMORY_SIZE 128)
 
 # The default number of columns in memory dumps
-set (DEFAULT_MEMDUMP_COLUMNS 4)
+# The number of characters per row is 12*(1 + columns)
+set (DEFAULT_MEMDUMP_COLUMNS 8)
+
+# The default numeric base for memory dumps.
+# Only 10 and 16 are supported.
+set (DEFAULT_MEMDUMP_BASE 10)
 
 # End of build-time configurable options
 ###################################

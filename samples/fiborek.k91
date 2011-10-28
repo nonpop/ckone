@@ -1,0 +1,37 @@
+m ds 1
+in r1,=kbd
+store r1,m
+push sp,=0      ;tila funktion pal. arvolle.
+push sp,m       ;parametrin arvo pinoon.
+call sp,f2
+pop sp,r1       ;funkt. pal. arvo rekisteriin r1.
+out r1,=crt
+svc sp,=halt
+
+mones equ -2
+tulos equ -3    ;k‰ytet‰‰n viitattaessa funktion pal. arvolle var. muistipaikkaan.
+f2 pushr sp     ;huom: rekistereiden arvot pinoon.
+   load r2,mones(FP)
+   comp r2,=1
+   jequ nolla
+   comp r2,=2
+   jequ yksi
+   push sp,=0    ;jos p‰‰stiin t‰h‰n asti, tarvitaan rekursiota. Tila funkt. pal. arvolle.
+   sub r2,=1     ;ensimm‰isess‰ rekursiivisessa kutsussa yht‰ pienempi parametri.
+   push sp,r2    ;parametrin arvo pinoon.
+   call sp,f2
+   pop sp,r3     ;funkt. pal. arvo rekisteriin r3.
+   sub r2,=1     ;toisessa rekursiivisessa kutsussa kahta pienempi parametri.
+   push sp,=0
+   push sp,r2
+   call sp,f2
+   pop sp,r4
+   add r3,r4
+   jump ohi
+
+nolla load r3,=0          ;ensimm‰inen Fibonaccin luku on nolla.
+      jump ohi
+yksi  load r3,=1          ;toinen Fibonaccin luku on yksi.
+ohi   store r3,tulos(fp)  ;funktion arvon tallennus pinoon.
+      popr sp             ;huom: rekistereiden arvot pinosta.
+      exit sp,=1          ;parametreja oli yksi.

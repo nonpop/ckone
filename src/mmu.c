@@ -59,8 +59,8 @@ mmu_read (
     int32_t paddr = calculate_paddr (kone, kone->mar);
 
     if (!valid_paddr (kone, paddr)) {
-        ELOG ("Tried to read from address 0x%x (base = 0x%x, limit = 0x%x)\n",
-                paddr, kone->mmu_base, kone->mmu_limit);
+        ELOG ("Tried to read from address 0x%x (%d) (base = 0x%x (%d), limit = 0x%x (%d))\n",
+                paddr, paddr, kone->mmu_base, kone->mmu_base, kone->mmu_limit, kone->mmu_limit);
 
         kone->sr |= SR_M;
         return;
@@ -87,8 +87,8 @@ mmu_write (
     int32_t paddr = calculate_paddr (kone, kone->mar);
 
     if (!valid_paddr (kone, paddr)) {
-        ELOG ("Tried to write to address 0x%x (base = 0x%x, limit = 0x%x\n",
-                paddr, kone->mmu_base, kone->mmu_limit);
+        ELOG ("Tried to write to address 0x%x (%d) (base = 0x%x (%d), limit = 0x%x (%d))\n",
+                paddr, paddr, kone->mmu_base, kone->mmu_base, kone->mmu_limit, kone->mmu_limit);
 
         kone->sr |= SR_M;
         return;

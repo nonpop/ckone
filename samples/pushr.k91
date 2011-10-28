@@ -1,0 +1,13 @@
+stack ds 6
+load r0, =0
+load r1, =1
+load r2, =2
+load r3, =stack
+load r4, =4
+load r5, =5
+load r6, =6
+load r7, =7
+pushr r3
+popr r3
+svc r3, =halt
+

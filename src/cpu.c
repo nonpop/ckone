@@ -335,84 +335,26 @@ cpu_exec_exit (
 
 /**
  * @internal
- * Push a value onto the stack.
- *
- * Affects: MAR, MBR, Rsp
- *
- * Affected status bits: ::SR_M
- */
-static void 
-cpu_push_value (
-        s_ckone* kone,      ///< The state structure.
-        e_register sp,      ///< The stack pointer.
-        int32_t value       ///< The value to push.
-        ) 
-{
-    kone->mbr = value;
-    kone->r[sp]++;
-    kone->mar = kone->r[sp];
-    mmu_write (kone);
-}
-
-
-/**
- * @internal
- * Push a register (R0 to R7) onto the stack. It first stores the value 
- * in Rreg onto the stack and then increases Rsp, so in case these are 
- * the same register, the pushed value will be the original value.
- *
- * Affects: MAR, MBR, Rsp
- *
- * Affected status bits: ::SR_M
- */
-static void 
-cpu_push_register (
-        s_ckone* kone,          ///< The state structure.
-        e_register sp,          ///< The stack pointer.
-        e_register reg          ///< The register to push.
-        ) 
-{
-    cpu_push_value (kone, sp, kone->r[reg]);
-}
-
-
-/**
- * @internal
- * Pop a value off the stack and store it to a register.
- * It first assigns the value to Rreg and then decreases Rsp, so
- * in case these are the same register, the popped value will be
- * decreased by one.
- *
- * Affects: MAR, MBR, Rsp, Rreg
- *
- * Affected status bits: ::SR_M
- */
-static void 
-cpu_pop_register (
-        s_ckone* kone,          ///< The state structure.
-        e_register sp,          ///< The stack pointer.
-        e_register reg          ///< The register to store the popped value into.
-        ) 
-{
-    kone->mar = kone->r[sp];
-    mmu_read (kone);
-    kone->r[reg] = kone->mbr;
-    kone->r[sp]--;
-}
-
-
-/**
- * @internal
  * Execute a PUSH command.
  *
- * See cpu_push_value().
+ * Increases the value of the first operand register and then
+ * stores the value in TR (the second operand) into memory at
+ * the location pointed by the first operand.
+ *
+ * Affects: MAR, MBR, Rx
+ *
+ * Affected status bits: ::SR_M
  */
 static void 
 cpu_exec_push (
         s_ckone* kone       ///< The state structure.
         ) 
 {
-    cpu_push_value (kone, instr_first_operand (kone->ir), kone->tr);
+    e_register sp = instr_first_operand (kone->ir);
+    kone->r[sp]++;
+    kone->mar = kone->r[sp];
+    kone->mbr = kone->tr;
+    mmu_write (kone);
 }
 
 
@@ -420,14 +362,25 @@ cpu_exec_push (
  * @internal
  * Execute a POP command.
  *
- * See cpu_pop_register().
+ * First stores the value pointed by the first operand to the index
+ * register of the instruction, then decreases the value of the
+ * first operand register. @note If both registers are the same, the
+ * popped value will be decreased by one.
+ *
+ * Affects: MAR, MBR, Rx, Ri
+ *
+ * Affected status bits: ::SR_M
  */
 static void 
 cpu_exec_pop (
         s_ckone* kone       ///< The state structure.
         ) 
 {
-    cpu_pop_register (kone, instr_first_operand (kone->ir), instr_index_reg (kone->ir));
+    e_register sp = instr_first_operand (kone->ir);
+    kone->mar = kone->r[sp];
+    mmu_read (kone);
+    kone->r[instr_index_reg (kone->ir)] = kone->mbr;
+    kone->r[sp]--;
 }
 
 
@@ -435,8 +388,11 @@ cpu_exec_pop (
  * @internal
  * Execute a PUSHR command.
  *
- * Pushes the registers from R0 to R6 in order 
- * using cpu_push_register().
+ * For each register R0 to R6, it first increases the first operand
+ * register's value by one, then takes the value of one of the registers
+ * and stores it to the memory location pointed by the first operand.
+ * This means that the <i>increased</i> value of the register used as the 
+ * stack pointer will be stored, contrary to how PUSH works.
  */
 static void 
 cpu_exec_pushr (
@@ -445,8 +401,12 @@ cpu_exec_pushr (
 {
     e_register sp = instr_first_operand (kone->ir);
 
-    for (e_register i = R0; i <= R6; i++)
-        cpu_push_register (kone, sp, i);
+    for (e_register r = R0; r <= R6; r++) {
+        kone->r[sp]++;
+        kone->mar = kone->r[sp];
+        kone->mbr = kone->r[r];
+        mmu_write (kone);
+    }
 }
 
 
@@ -454,8 +414,14 @@ cpu_exec_pushr (
  * @internal
  * Execute a POPR command.
  *
- * Pops the registers from R6 to R0 in order 
- * using cpu_pop_register().
+ * For each register R6 to R0, it first stores the value at the location
+ * pointed by the first operand to one of the registers, then decreases
+ * the value of the first operand register. This works the same way as
+ * a normal POP.
+ *
+ * Affects: MAR, MBR, Rx, Ri
+ *
+ * Affected status bits: ::SR_M
  */
 static void 
 cpu_exec_popr (
@@ -464,8 +430,13 @@ cpu_exec_popr (
 {
     e_register sp = instr_first_operand (kone->ir);
 
-    for (e_register i = R0; i <= R6; i--)
-        cpu_pop_register (kone, sp, R6 - i);    // stupid unsigned integers ;p
+    for (e_register i = R0; i <= R6; i++) {
+        e_register r = R6 - i;                  // damn unsigned integers :p
+        kone->mar = kone->r[sp];
+        mmu_read (kone);
+        kone->r[r] = kone->mbr;
+        kone->r[sp]--;
+    }
 }
 
 

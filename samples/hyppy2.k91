@@ -1,0 +1,9 @@
+                IN R1, =KBD
+                COMP R1, =0
+                JLES miinus
+ plus           LOAD R2,=0
+                JUMP tulosta
+ miinus         LOAD R2,=1
+ tulosta        OUT R2, =CRT
+                SVC SP, =halt
+

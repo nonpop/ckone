@@ -1,0 +1,19 @@
+in r1,=kbd
+push sp, r1
+call sp, bin
+svc sp,=halt
+
+dec equ -2
+
+bin     pushr sp
+        load r1,dec(fp)
+        jzer r1,pura
+        load r2,r1
+        div r2,=2
+        push sp,r2
+        call sp,bin
+        mod r1,=2
+        out r1,=crt
+  pura  popr sp
+        exit sp,=1
+

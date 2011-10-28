@@ -1,0 +1,23 @@
+; esimerkki taulukon k„yt”st„
+a ds 10
+load r2,=0
+in r3,=kbd ;luetaan syottolukujen m„„r„
+comp r3,=10
+jgre loppu
+jneg r3,loppu
+syotteet comp r2,r3
+         jnles summa
+         in r1,=kbd
+         store r1,a(r2)
+         add r2,=1
+         jump syotteet
+;lasketaan summa
+summa   load r1,=0;laskuri
+        load r2,=0;summa
+while   comp r1,r3
+        jnles tulosta
+        add r2,a(r1)
+        add r1,=1
+        jump while
+tulosta out r2,=crt
+loppu   svc sp,=halt

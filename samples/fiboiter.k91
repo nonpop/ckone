@@ -1,0 +1,14 @@
+in r1,=kbd
+load r2,=0
+load r3,=1
+
+silmu jzer r1,ohi
+      out r2,=crt
+      load r4,r3
+      load r3,r2
+      load r5,r4
+      add r5,r3
+      load r2,r5
+      sub r1,=1
+      jump silmu
+ohi   svc sp,=halt

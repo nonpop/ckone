@@ -9,11 +9,12 @@
 #include "cpu.h"
 #include "symtable.h"
 #include "args.h"
+#include "config.h"
 
 
 /**
  * Initializes the ckone. Allocates memory and resets the CPU.
- * If the clean flag (see ::args) is set, it will also zero all 
+ * If the zero flag (see ::args) is set, it will also zero all 
  * memory and registers. See also ckone_free().
  *
  * @return True if successful, false otherwise.
@@ -24,7 +25,7 @@ ckone_init (
         ) 
 {
     DLOG ("Initializing the ckone structure...\n", 0);
-    if (args.clean) {
+    if (args.zero) {
         ILOG ("Zeroing state structure...\n", 0);
         memset (kone, 0, sizeof(s_ckone));
     }
@@ -37,7 +38,7 @@ ckone_init (
     }
     DLOG ("Allocated %d bytes of memory\n", args.mem_size*sizeof(int32_t));
 
-    if (args.clean) {
+    if (args.zero) {
         ILOG ("Zeroing emulator memory...\n", 0);
         memset (kone->mem, 0, args.mem_size*sizeof(int32_t));
     }
@@ -209,7 +210,8 @@ ckone_free (
 /**
  * @internal
  * Print the contents of the emulator memory. The number of columns
- * is determined by a command line argument.
+ * and the number base is determined by command line arguments and
+ * a compile-time option (DEFAULT_MEMDUMP_BASE).
  */
 static void 
 ckone_dump_memory (
@@ -218,27 +220,48 @@ ckone_dump_memory (
 {
     unsigned int cols = args.mem_cols;
 
-    printf ("Memory size: %d words, MMU base: 0x%08x, MMU limit: %d words\n",
-            kone->mem_size, kone->mmu_base, kone->mmu_limit);
-    printf ("(Accessible memory area: 0x%08x - 0x%08x)\n",
+    printf ("Memory size: %d words, MMU base: 0x%08x (%d), MMU limit: %d words\n",
+            kone->mem_size, kone->mmu_base, kone->mmu_base, kone->mmu_limit);
+    printf ("Accessible memory area: 0x%08x - 0x%08x (%d - %d)\n",
+            kone->mmu_base, kone->mmu_base + kone->mmu_limit - 1,
             kone->mmu_base, kone->mmu_base + kone->mmu_limit - 1);
+
+
+    // choose the number base based on both a compile-time option
+    // and a command line argument
+    int base = DEFAULT_MEMDUMP_BASE;
+    if (args.mem_swap_base)
+        base = (base == 10)? 16 : 10;
+
 
     // table header
     printf ("Memory      ");
-    for (size_t i = 0; i < cols; i++)
-        printf("%12d", i);         // column offset
+    for (size_t i = 0; i < cols; i++) {
+        if (base == 10)
+            printf("%12d", i);         // column offset
+        else
+            printf("%12x", i);
+    }
     printf ("\n");
 
-    printf("------------");
+    printf ("------------");
     for (size_t i = 0; i < cols; i++)
         printf("------------");
     printf ("\n");
 
     for (size_t i = 0; i < kone->mem_size; i++) {
-        if (i % cols == 0)
-            printf ("0x%08x |", i);
+        if (i % cols == 0) {
+            if (base == 10)
+                printf ("%10u |", i);
+            else
+                printf ("0x%08x |", i);
+        }
 
-        printf ("  0x%08x", kone->mem[i]);
+        if (base == 10)
+            printf (" %11d", kone->mem[i]);
+        else
+            printf ("  0x%08x", kone->mem[i]);
+
         if ((i % cols == cols - 1) || (i == kone->mem_size - 1))
             printf ("\n");
     }

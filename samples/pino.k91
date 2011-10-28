@@ -1,0 +1,28 @@
+;Pinoesimerkki
+
+LKM DS 1
+LUKU DS 1
+        LOAD R1,=0
+        STORE R1,LKM
+        IN R2,=KBD
+        STORE R2,LUKU
+WHILE1  LOAD R2,LUKU
+        JZER R2,WHILE2
+        PUSH SP,LUKU
+        LOAD R1,LKM
+        ADD R1,=1
+        STORE R1,LKM
+        IN R2,=KBD
+        STORE R2,LUKU
+        JUMP WHILE1
+WHILE2 LOAD R1,LKM
+        JZER R1,END
+        POP SP,R2
+        STORE R2,LUKU
+        LOAD R2,LUKU
+        OUT R2,=CRT
+        LOAD R1,LKM
+        SUB R1,=1
+        STORE R1,LKM
+        JUMP WHILE2
+END     SVC SP,=HALT

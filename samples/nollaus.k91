@@ -1,0 +1,9 @@
+;nollataan per„kk„iset muistipaikat. Monisteen sivu 57.
+        LOAD R1,=0
+        LOAD R2,=10
+        LOAD R3,=15
+LOOP    STORE R1, 0(R2)
+        ADD R2, =1
+        COMP R2,R3
+        JNGRE LOOP
+        SVC SP,=HALT

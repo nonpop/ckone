@@ -12,63 +12,6 @@ void test_cpu () {
     k.mem = mem;
     k.mem_size = sizeof(mem)/sizeof(int32_t);
 
-    /*
-    BEGIN ("fetch_instr") {
-        clear (&k);
-        k.mmu_limit = 2;
-        int32_t instr = make_instr (LOAD, R3, DIRECT, R1, 42);
-        mem[1] = instr;
-
-        TEST_I32X (0, k.ir);
-        cpu_fetch_instr (&k);
-        TEST_I32X (0, k.ir);
-        TEST_I32X (0, k.sr & SR_M);
-        cpu_fetch_instr (&k);
-        TEST_I32X (instr, k.ir);
-        TEST_I32X (0, k.sr & SR_M);
-        cpu_fetch_instr (&k);
-        TEST_I32X (SR_M, k.sr & SR_M);
-    }
-    BEGIN ("calculate_second_operand immediate") {
-        clear (&k);
-        k.mmu_limit = 2;
-        int32_t instr = make_instr (LOAD, R0, IMMEDIATE, R1, 42);
-        mem[0] = instr;
-        k.r[1] = 5;
-
-        cpu_fetch_instr (&k);
-        cpu_calculate_second_operand (&k);
-        TEST_I32 (47, k.tr);
-        TEST_I32X (0, k.sr & (SR_M | SR_U));
-    }
-    BEGIN ("calculate_second_operand direct") {
-        clear (&k);
-        k.mmu_limit = 4;
-        int32_t instr = make_instr (LOAD, R0, DIRECT, R1, 2);
-        mem[0] = instr;
-        mem[3] = 42;
-        k.r[1] = 1;
-
-        cpu_fetch_instr (&k);
-        cpu_calculate_second_operand (&k);
-        TEST_I32 (42, k.tr);
-        TEST_I32X (0, k.sr & (SR_M | SR_U));
-    }
-    BEGIN ("calculate_second_operand indirect") {
-        clear (&k);
-        k.mmu_limit = 4;
-        int32_t instr = make_instr (LOAD, R0, INDIRECT, R1, 2);
-        mem[0] = instr;
-        mem[1] = 1337;
-        mem[3] = 1;
-        k.r[1] = 1;
-
-        cpu_fetch_instr (&k);
-        cpu_calculate_second_operand (&k);
-        TEST_I32 (1337, k.tr);
-        TEST_I32X (0, k.sr & (SR_M | SR_U));
-    }
-    */
 
     BEGIN ("load/store, addressing modes") {
         clear (&k);
@@ -301,6 +244,62 @@ void test_cpu () {
         TEST_I32 (15, k.r[SP]);
         TEST_I32 (15, k.r[FP]);
         TEST_BITSCLR (k.sr, SR_O | SR_M);
+    }
+
+    BEGIN ("push/pop corner case") {
+        clear (&k);
+        mem[0] = 46137347;      // load sp, =stack
+        mem[1] = 868614144;     // push sp, sp
+        mem[2] = 885391360;     // pop sp, sp
+        mem[3] = 0;             // stack dc 0
+
+        cpu_step (&k);          // load sp, =stack
+        cpu_step (&k);          // push sp, sp
+        TEST_I32 (3, mem[4]);
+        TEST_I32 (4, k.r[SP]);
+        cpu_step (&k);          // pop sp, sp
+        TEST_I32 (2, k.r[SP]);
+    }
+
+    BEGIN ("pushr/popr") {
+        clear (&k);
+
+        mem[0] = 33554432;      // load r0, =0
+        mem[1] = 35651585;      // load r1, =1
+        mem[2] = 37748738;      // load r2, =2
+        mem[3] = 39845898;      // load r3, =stack
+        mem[4] = 41943044;      // load r4, =4
+        mem[5] = 44040197;      // load r5, =5
+        mem[6] = 46137350;      // load r6, =6
+        mem[7] = 48234503;      // load r7, =7
+        mem[8] = 896008192;     // pushr r3
+        mem[9] = 912785408;     // popr r3
+        mem[10] = 0;            // stack ds 6
+        mem[17] = 0;
+
+        for (int i = 0; i < 8; i++)
+            cpu_step (&k);      // load rx, =y
+
+        cpu_step (&k);          // pushr r3
+        TEST_I32 (0, mem[11]);
+        TEST_I32 (1, mem[12]);
+        TEST_I32 (2, mem[13]);
+        TEST_I32 (14, mem[14]);
+        TEST_I32 (4, mem[15]);
+        TEST_I32 (5, mem[16]);
+        TEST_I32 (6, mem[17]);
+        TEST_I32 (0, mem[18]);
+        TEST_I32 (17, k.r[R3]);
+
+        cpu_step (&k);          // popr r3
+        TEST_I32 (0, k.r[R0]);
+        TEST_I32 (1, k.r[R1]);
+        TEST_I32 (2, k.r[R2]);
+        TEST_I32 (10, k.r[R3]);
+        TEST_I32 (4, k.r[R4]);
+        TEST_I32 (5, k.r[R5]);
+        TEST_I32 (6, k.r[R6]);
+        TEST_I32 (7, k.r[R7]);
     }
 }
 
