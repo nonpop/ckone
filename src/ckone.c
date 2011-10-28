@@ -80,7 +80,8 @@ read_line (
 /**
  * Load a program into memory. Also sets FP and SP to match the
  * end of the code segment and the data segment respectively.
- * See also ckone_free().
+ * See also ckone_free(). The first word of the program is written
+ * to the location pointed by MMU_BASE.
  *
  * @return True if successful, false otherwise.
  */
@@ -114,26 +115,26 @@ ckone_load (
     if (strcmp (line, "___code___\n"))
         EXPECTED ("___code___");
 
-    size_t start, end;
+    int32_t start, end;
     READ_CHECK ();
-    if (sscanf (line, "%u %u", &start, &end) != 2)
+    if (sscanf (line, "%d %d", &start, &end) != 2)
         EXPECTED ("two integers");
     
     DLOG ("Code segment: %d - %d\n", start, end);
     kone->r[FP] = end;
     ILOG ("Frame pointer set to 0x%x\n", end);
 
-    for (size_t i = start; i <= end; i++) {
+    for (int32_t i = start; i <= end; i++) {
         READ_CHECK ();
         int instr;
         if (sscanf (line, "%d", &instr) != 1)
             EXPECTED ("an integer");
 
-        if (i >= kone->mem_size) {
-            ELOG ("The program is too big to fit in %d words\n", kone->mem_size);
+        if (i >= kone->mmu_limit) {
+            ELOG ("The program is too big to fit in MMU_LIMIT = %d words\n", kone->mmu_limit);
             return false;
         }
-        kone->mem[i] = instr;
+        kone->mem[kone->mmu_base + i] = instr;
     }
 
     // data segment
@@ -142,24 +143,24 @@ ckone_load (
         EXPECTED ("___data___");
 
     READ_CHECK ();
-    if (sscanf (line, "%u %u", &start, &end) != 2)
+    if (sscanf (line, "%d %d", &start, &end) != 2)
         EXPECTED ("two integers");
 
     DLOG ("Data segment: %d - %d\n", start, end);
     kone->r[SP] = end;
     ILOG ("Stack pointer set to 0x%x\n", end);
 
-    for (size_t i = start; i <= end; i++) {
+    for (int32_t i = start; i <= end; i++) {
         READ_CHECK ();
         int data;
         if (sscanf (line, "%d", &data) != 1)
             EXPECTED ("an integer");
 
-        if (i >= kone->mem_size) {
-            ELOG ("The program is too big to fit in %d words\n", kone->mem_size);
+        if (i >= kone->mmu_limit) {
+            ELOG ("The program is too big to fit in MMU_LIMIT = %d words\n", kone->mmu_limit);
             return false;
         }
-        kone->mem[i] = data;
+        kone->mem[kone->mmu_base + i] = data;
     }
 
     // symbol table
@@ -220,7 +221,7 @@ ckone_dump_memory (
     printf ("Memory size: %d words, MMU base: 0x%08x, MMU limit: %d words\n",
             kone->mem_size, kone->mmu_base, kone->mmu_limit);
     printf ("(Accessible memory area: 0x%08x - 0x%08x)\n",
-            kone->mmu_base, kone->mmu_base + kone->mmu_limit);
+            kone->mmu_base, kone->mmu_base + kone->mmu_limit - 1);
 
     // table header
     printf ("Memory      ");
@@ -321,8 +322,8 @@ ckone_dump (
     ckone_dump_registers (kone);
     if (args.step) {
         char buf[1024];
-        if (!kone->halted && kone->pc >= 0 && (size_t)kone->pc < kone->mem_size)
-            instr_string (kone->mem[kone->pc], buf, sizeof(buf));
+        if (!kone->halted && kone->pc >= 0 && kone->pc < kone->mmu_limit)
+            instr_string (kone->mem[kone->mmu_base + kone->pc], buf, sizeof(buf));
         else
             snprintf (buf, sizeof(buf), "N/A");
         printf ("\n>>> Next instruction: %s\n", buf);

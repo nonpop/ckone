@@ -1,0 +1,7 @@
+A DC 0
+B DC 1337       ; A random value to show that the call doesn't 
+PUSH SP, =A     ; seem to care at all about the second argument.
+PUSH SP, =B
+SVC SP, =READ
+SVC SP, =HALT
+

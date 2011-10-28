@@ -3,6 +3,166 @@
  *
  * The program entry point. Parses the command line arguments and
  * calls functions to initialize and start the emulator.
+ *
+ * The main page of the documentation is also included here.
+ */
+
+
+/**
+ * @mainpage
+ *
+ * @section intro Introduction
+ *
+ * Ckone is a program which aims to emulate the execution of a TTK-91 processor.
+ * The instruction set is described at http://www.cs.helsinki.fi/group/titokone/v1.200/kaskyt_en.txt .
+ * Ckone implements the complete instruction set, and it supports the DEF directive, which means
+ * that if the symbol table of the program file contains an `stdin` or `stdout` entry, then reading
+ * and writing from these devices will be directed to the given files. The SVC routines have also
+ * been implemented.
+ *
+ * Titokone 1.203 (http://www.cs.helsinki.fi/group/titokone/) has been used as a reference
+ * when implementing ckone. Two bugs were found in Titokone, which can be replicated in ckone by
+ * using the <code>--emulate-bugs</code> -flag. The bugs are:
+ *  -# The SVC READ routine takes two arguments instead of one, and ignores the second-pushed argument.
+ *     The following code (see samples/bug1.[k91|b91]) illustrates this:
+@verbatim
+    A DC 0
+    B DC 1337       ; A random value to show that the call doesn't 
+    PUSH SP, =A     ; seem to care at all about the second argument.
+    PUSH SP, =B
+    SVC SP, =READ
+    SVC SP, =HALT
+@endverbatim
+ *     Run this in Titokone 1.203 and enter, say, 42 as input. The result is that the memory location
+ *     A will contain 42, and B remains 1337. Also, the value of SP indicates that the SVC really took
+ *     two arguments. Running this in ckone without the <code>--emulate-bugs</code> flag enabled will
+ *     result in B getting the value 42 and the address of A remaining on the stack after the call.
+ *  -# The SVC DATE routine reports the month as one too small. The following code (see samples/bug2.[k91|b91])
+ *     illustrates this:
+@verbatim
+    DAY DC 0
+    MONTH DC 0
+    YEAR DC 0
+    PUSH SP, =YEAR
+    PUSH SP, =MONTH
+    PUSH SP, =DAY
+    SVC SP, =DATE
+    SVC SP, =HALT
+@endverbatim
+ *     Running this in ckone without the <code>--emulate-bugs</code> flag enabled will report the
+ *     correct month.
+ *
+ *
+ * @section compilation Compilation
+ * 
+ * The compilation process is described in the README file.
+ *
+ *
+ * @section running Running
+ *
+ * The syntax for running is <code>ckone [OPTIONS...] program.b91</code>. The program file should be
+ * a "binary" file assembled by, for example, Titokone. If a dash (<code>-</code>) is used, the program
+ * is read from the standard input. The available options can be listed with <code>ckone --help</code>.
+ * 
+ * The amount of logging messages can be adjusted by using the <code>--verbose</code> flag. If it is not
+ * used at all, only the most important messages are shown (warnings, errors, prompts and dumps). If
+ * the flag is used once, information messages are also shown, for example initialization messages and
+ * the currently executing instruction. Using the flag twice causes all messages to be included. This
+ * means lots of output which is only useful for debugging. More details about what the other options 
+ * mean can be found in the following section.
+ *
+ *
+ * @section structure The structure of the program
+ * 
+ * The ckone executable consists of two parts: the emulator and the interface. The emulator is built
+ * from the files alu.c, cpu.c, ext.c, instr.c, and mmu.c. The interface is built from ckone.c,
+ * symtable.c, and main.c. The file log.c is linked in the emulator library, but is not really a part
+ * of either.
+ * 
+ * @subsection initialization Initialization
+ *
+ * When the program starts, it first parses the command line using Argp 
+ * (http://www.gnu.org/s/hello/manual/libc/Argp.html), which will initialize the ::args variable. After
+ * that, the ::s_ckone structure is initialized using ckone_init(). This allocates memory for the 
+ * emulator, the amount of which can be modified using the <code>--mem-size</code> command line argument.
+ * It also sets the MMU base and limit registers (adjustable by <code>--mmu-base</code> and 
+ * <code>mmu-limit</code> respectively) and, if the <code>--clean</code> flag was used, fills the memory
+ * and other registers with zeroes. The PC and SR registers and the halted -flag are cleared in any case 
+ * to reset the CPU.
+ *
+ * After this the program is loaded into memory using ckone_load(). The program is loaded so that the 
+ * first word is put to the memory address indicated by the MMU base register, which may not be zero.
+ * The FP and SP registers are set to point to the end of data and code segments respectively (relative
+ * to the MMU base register), the way Titokone does.
+ *
+ * Then the external devices (KBD, CRT, STDIN and STDOUT) are initialized. KBD is connected with the
+ * standard input and CRT with the standard output. If the <code>--stdio</code> option was used, then
+ * the given file is opened and assigned to the STDIN device. If the option was not used, but the
+ * program's symbol table contains the symbol <code>stdin</code>, then the value of that symbol is
+ * used. If this doesn't apply either, the file <code>stdin</code> in the current working directory
+ * is used. The same goes for the STDOUT device (<code>--stdout</code> option).
+ *
+ * @subsection emulation Emulation
+ *
+ * Next the emulator is started (ckone_run()). If the <code>--step</code> flag was used, the emulator 
+ * will pause and dump the memory and registers before every instruction. Otherwise, the emulator will 
+ * run until the CPU is halted (using SVC HALT) or some error occurs, stopping only to get user input
+ * when the program reads from the KBD device. After the emulator has finished, the contents of memory 
+ * and the registers will always be shown. The memory is printed with several memory locations on one
+ * row. The length of a row (the number of columns) can be adjusted by using the <code>--columns</code>
+ * option. If the <code>--show-symtable</code> flag was set, each dump will also contain the contents
+ * of the symbol table.
+ *
+ * Each instruction is executed in the following steps.
+ *  -# The MMU is told to fetch the next instruction from the memory address given by the PC register.
+ *  -# The second operand of the instruction is calculated. First the contents of the index register
+ *     (if some other than R0) is added to the constant part of the instruction. Then, if the addressing
+ *     mode is not IMMEDIATE, a new value will be retrieved from that location. If the addressing
+ *     mode is INDIRECT, yet another value is retrieved from the location given by the previous value.
+ *     This value is then stored in the TR register.
+ *  -# A suitable function is called based on the instrument's operation code.
+ * The function then performs the operation and the cycle repeats.
+ *
+ * All memory accessing is done through the MMU functions in mmu.c. These first convert the address given
+ * in MAR (a logical address), which is relative to the MMU base register, into a physical address, 
+ * which is relative to the beginning of the memory. If this address is within the limits of the MMU base
+ * and limit registers, the memory operation is performed. Otherwise, the invalid-memory-access bit of SR
+ * is set. If the operation was a read operation, the result is stored in the MBR register. If the operation
+ * was a write operation, the value in MBR is stored into memory at the calculated physical location.
+ * 
+ * The ALU operations are in alu.c. They all read the ALU_IN1 and ALU_IN2 registers (except NOT only
+ * reads ALU_IN1), and store their result in ALU_OUT. The overflow or division-by-zero bits of the SR
+ * register are set if needed.
+ * 
+ * The operations IN, OUT and SVC are defined in ext.c, although the SVC call is prepared in cpu.c by
+ * pushing the PC and FP registers on the stack and, when the call exits, they are popped back and a
+ * proper amount is subtracted from SP to remove the arguments from the stack. The operations which
+ * perform I/O will set the invalid-memory-access bit of SR if an I/O error occurs. The SVC HALT
+ * routine is the only way to stop a program without an error occurring.
+ *
+ * The rest of the operations (STORE, LOAD, COMP, the jumps, and stack operations) are all defined in cpu.c.
+ * 
+ *
+ * @section log Logging
+ *
+ * The file log.c contains a very simple logger and some helper macros are in log.h. The logger is just
+ * a wrapper for printf, printing the given message only if the message is important enough given the
+ * current verbosity level of the program.
+ *
+ *
+ * @section tests Testing
+ *
+ * The other executable, <code>ckone_tests</code> was built from the emulator part of ckone and the files
+ * in the <code>test</code> directory. It contains unit-tests for most of the operations, which do not
+ * access the external world. The tests produce lots of messages, but they can be ignored if the last line
+ * says that all tests were passed. This should be the case.
+ *
+ * The <code>samples</code> subdirectory contains example programs, most of which are from 
+ * http://www.cs.helsinki.fi/group/nodes/kurssit/tito/esimerkit/ . The sources were compiled using Titokone
+ * 1.203. The results when running with Titokone 1.203 and ckone with <code>--emulate-bugs</code> should be
+ * identical, with the exception of the registers and memory locations which were not written by the program,
+ * and the final PC value (ckone does not make it -1 when halting).
+ *
  */
 
 #include <argp.h>
