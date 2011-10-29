@@ -41,13 +41,13 @@ create_node (
         ) 
 {
     size_t size = sizeof (s_symtable);
-    DLOG ("Allocating %zu bytes for the struct...\n", size);
+    //DLOG ("Allocating %zu bytes for the struct...\n", size);
     s_symtable* new = malloc (size);
     if (!new)
         return NULL;
 
     size = (strlen (name) + 1) * sizeof (char);
-    DLOG ("Allocating %zu bytes for the name...\n", size);
+    //DLOG ("Allocating %zu bytes for the name...\n", size);
     new->name = malloc (size);
     if (!new->name) {
         free (new);
@@ -55,7 +55,7 @@ create_node (
     }
 
     size = (strlen (value) + 1) * sizeof (char);
-    DLOG ("Allocating %zu bytes for the value...\n", size);
+    //DLOG ("Allocating %zu bytes for the value...\n", size);
     new->value_str = malloc (size);
     if (!new->value_str) {
         free (new->name);
@@ -63,15 +63,15 @@ create_node (
         return NULL;
     }
 
-    DLOG ("Copying name %s...\n", name);
+    //DLOG ("Copying name %s...\n", name);
     strcpy (new->name, name);
 
-    DLOG ("Copying value %s...\n", value);
+    //DLOG ("Copying value %s...\n", value);
     strcpy (new->value_str, value);
 
-    DLOG ("Converting value to integer...\n", 0);
+    //DLOG ("Converting value to integer...\n", 0);
     sscanf (value, "%d", &new->value);
-    DLOG ("The integer value is: %d\n", new->value);
+    //DLOG ("The integer value is: %d\n", new->value);
 
     return new;
 }
