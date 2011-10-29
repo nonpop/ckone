@@ -40,26 +40,37 @@ create_node (
         char* value     ///< The string value of the symbol.
         ) 
 {
+    DLOG ("Allocating %d bytes for the struct...\n", sizeof (s_symtable));
     s_symtable* new = malloc (sizeof (s_symtable));
     if (!new)
         return NULL;
 
-    new->name = malloc ((strlen (name) + 1)*sizeof (char));
+    size_t size = strlen (name) + 1;
+    DLOG ("Allocating %d bytes for the name...\n", size);
+    new->name = malloc (size);
     if (!new->name) {
         free (new);
         return NULL;
     }
 
-    new->value_str = malloc ((strlen (value) + 1)*sizeof (char));
+    size = strlen (value) + 1;
+    DLOG ("Allocating %d bytes for the value...\n", size);
+    new->value_str = malloc (size);
     if (!new->value_str) {
         free (new->name);
         free (new);
         return NULL;
     }
 
+    DLOG ("Copying name...\n", 0);
     strcpy (new->name, name);
+
+    DLOG ("Copying value...\n", 0);
     strcpy (new->value_str, value);
+
+    DLOG ("Converting value to integer...\n", 0);
     sscanf (value, "%d", &new->value);
+    DLOG ("The integer value is: %d\n", new->value);
 
     return new;
 }
@@ -95,6 +106,8 @@ symtable_insert (
         char* value     ///< The string value of the symbol.
         ) 
 {
+    DLOG ("Inserting symbol %s = %s\n", name, value);
+
     s_symtable* new = create_node (name, value);
     if (!new) {
         ELOG ("Failed to allocate memory for a symbol table node\n", 0);
