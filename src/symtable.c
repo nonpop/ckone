@@ -72,6 +72,7 @@ create_node (
     char* src = name;
     while (*src)
         *dst++ = *src++;
+    *dst = 0;
 
     DLOG ("Copying value %s...\n", value);
     //strcpy (new->value_str, value);
@@ -79,6 +80,7 @@ create_node (
     src = value;
     while (*src)
         *dst++ = *src++;
+    *dst = 0;
 
     DLOG ("Converting value to integer...\n", 0);
     sscanf (value, "%d", &new->value);
