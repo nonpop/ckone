@@ -111,6 +111,7 @@ ckone_load (
     /// @cond skip
     // little macros to make things easier to read
 #define READ_CHECK() if (!(line = read_line (input, &linenum))) return false
+
 #define EXPECTED(what) { \
     ELOG ("Expected " what " at line %d but got %s\n", linenum, line); \
     return false; \
@@ -138,7 +139,7 @@ ckone_load (
 
     for (int32_t i = start; i <= end; i++) {
         READ_CHECK ();
-        int instr;
+        int32_t instr;
         if (sscanf (line, "%d", &instr) != 1)
             EXPECTED ("an integer");
 
@@ -165,7 +166,7 @@ ckone_load (
 
     for (int32_t i = start; i <= end; i++) {
         READ_CHECK ();
-        int data;
+        int32_t data;
         if (sscanf (line, "%d", &data) != 1)
             EXPECTED ("an integer");
 
@@ -262,13 +263,15 @@ ckone_dump_memory (
     }
     printf ("\n");
 
+    // header-contents -separator
     printf ("------------");
     for (int i = 0; i < cols; i++)
         printf("------------");
     printf ("\n");
 
+    // table contents
     for (int32_t i = 0; i < kone->mem_size; i++) {
-        if (i % cols == 0) {
+        if (i % cols == 0) {        // the location of the first row entry
             if (base == 10)
                 printf ("%10u |", i);
             else
@@ -280,6 +283,7 @@ ckone_dump_memory (
         else
             printf ("  0x%08x", kone->mem[i]);
 
+        // newline after the last entry in the row
         if ((i % cols == cols - 1) || (i == kone->mem_size - 1))
             printf ("\n");
     }
@@ -318,6 +322,8 @@ ckone_dump_registers (
             printf ("R%d (FP) = ", r);
 
         print_hex_dec (kone->r[r]);
+
+        // we have two columns: R0-R7, and the others
         printf ("   ");
         switch (r) {
             case R0: printf ("PC      = "); print_hex_dec (kone->pc); break;
@@ -331,6 +337,8 @@ ckone_dump_registers (
         }
         printf ("\n");
     }
+
+    // The status register
     printf ("SR = ");
 
     int32_t sr = kone->sr;
@@ -361,6 +369,8 @@ ckone_dump (
 {
     printf ("\nCurrent state:\n\n");
     ckone_dump_registers (kone);
+
+    // In stepping mode, print also the next instruction (not the current)
     if (args.step) {
         char buf[1024];
         if (!kone->halted && kone->pc >= 0 && kone->pc < kone->mmu_limit)
@@ -370,10 +380,12 @@ ckone_dump (
         printf ("\n>>> Next instruction: %s\n", buf);
     }
     printf ("\n");
+
     if (args.include_symtable) {
         symtable_dump ();
         printf ("\n");
     }
+
     ckone_dump_memory (kone);
     printf ("\n");
 }
@@ -393,7 +405,7 @@ pause (
 {
     while (true) {
         printf ("Type enter to execute the next instruction, \"s\" to show\n"
-                "the symbol table, or \"q\" to quit: \n");
+                "the symbol table, or \"q\" to quit: ");
 
         char buf[1024];
         fgets (buf, sizeof (buf), stdin);
@@ -417,7 +429,7 @@ pause (
  * Start emulation. The emulation will run until an error occurs
  * or the CPU halts. If stepping mode is on, the emulation will pause
  * between every instruction. In this case the user can also choose
- * to stop any time the emulation has paused.
+ * to quit at any time the emulation has paused.
  *
  * @return EXIT_FAILURE if something went wrong, EXIT_SUCCESS otherwise.
  */
@@ -446,6 +458,8 @@ ckone_run (
                     return EXIT_FAILURE;
         }
     }
+
+    // in stepping mode, this was already done
     if (!args.step)
         ckone_dump (kone);
 

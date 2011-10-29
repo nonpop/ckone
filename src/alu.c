@@ -63,6 +63,7 @@ do_and_check (
 // Macros to show some debug messages
 #define MSG(op) DLOG ("Calculating 0x%x " op " 0x%x (%d " op " %d)\n", \
                       kone->alu_in1, kone->alu_in2, kone->alu_in1, kone->alu_in2);
+
 #define RES() DLOG ("Result = 0x%x (%d)\n", kone->alu_out, kone->alu_out)
 /// @endcond
 
