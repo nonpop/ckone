@@ -32,22 +32,25 @@ static s_symtable* symtable = NULL;
  * Create a new symbol table node and copy the name
  * and value into it.
  *
+ * @todo This will halt on some machines at "Copying name..."
+ * if optimizations are enabled...
+ *
  * @return NULL if the allocation failed.
  */
 static s_symtable* 
 create_node (
-        const char* name,     ///< The name of the symbol.
-        const char* value     ///< The string value of the symbol.
+        char* name,     ///< The name of the symbol.
+        char* value     ///< The string value of the symbol.
         ) 
 {
     size_t size = sizeof (s_symtable);
-    //DLOG ("Allocating %zu bytes for the struct...\n", size);
+    DLOG ("Allocating %zu bytes for the struct...\n", size);
     s_symtable* new = malloc (size);
     if (!new)
         return NULL;
 
     size = (strlen (name) + 1) * sizeof (char);
-    //DLOG ("Allocating %zu bytes for the name...\n", size);
+    DLOG ("Allocating %zu bytes for the name...\n", size);
     new->name = malloc (size);
     if (!new->name) {
         free (new);
@@ -55,7 +58,7 @@ create_node (
     }
 
     size = (strlen (value) + 1) * sizeof (char);
-    //DLOG ("Allocating %zu bytes for the value...\n", size);
+    DLOG ("Allocating %zu bytes for the value...\n", size);
     new->value_str = malloc (size);
     if (!new->value_str) {
         free (new->name);
@@ -63,15 +66,15 @@ create_node (
         return NULL;
     }
 
-    //DLOG ("Copying name %s...\n", name);
+    DLOG ("Copying name %s...\n", name);
     strcpy (new->name, name);
 
-    //DLOG ("Copying value %s...\n", value);
+    DLOG ("Copying value %s...\n", value);
     strcpy (new->value_str, value);
 
-    //DLOG ("Converting value to integer...\n", 0);
+    DLOG ("Converting value to integer...\n", 0);
     sscanf (value, "%d", &new->value);
-    //DLOG ("The integer value is: %d\n", new->value);
+    DLOG ("The integer value is: %d\n", new->value);
 
     return new;
 }
@@ -89,6 +92,8 @@ symtable_clear (
     DLOG ("Freeing symbol table...\n", 0);
     for (s_symtable* s = symtable; s; ) {
         s_symtable* next = s->next;
+        free (s->value_str);
+        free (s->name);
         free (s);
         s = next;
     }
