@@ -36,8 +36,8 @@ static s_symtable* symtable = NULL;
  */
 static s_symtable* 
 create_node (
-        char* name,     ///< The name of the symbol.
-        char* value     ///< The string value of the symbol.
+        const char* name,     ///< The name of the symbol.
+        const char* value     ///< The string value of the symbol.
         ) 
 {
     size_t size = sizeof (s_symtable);
