@@ -33,7 +33,7 @@ configure_file (
 
 include_directories("${PROJECT_BINARY_DIR}" "${PROJECT_SOURCE_DIR}/src")
 
-set(CMAKE_C_FLAGS "-std=c99 -Wall -Wextra -Werror -pedantic -g3 -O1")
+set(CMAKE_C_FLAGS "-std=c99 -Wall -Wextra -Werror -pedantic -g3")
 #set(CMAKE_C_FLAGS "-std=c99 -Wall -Wextra -Werror -pedantic -Os -g3")
 
 

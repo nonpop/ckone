@@ -516,6 +516,9 @@ main (
     if (!ckone_load (&kone, program_file))
         return EXIT_FAILURE;
 
+    if (program_file != stdin)
+        fclose (program_file);
+
     // Init the external devices.
     ext_init_devices ();
 
