@@ -35,8 +35,8 @@ do_and_check (
     int32_t a = kone->alu_in1;
     int32_t b = kone->alu_in2;
 
-    int32_t result;
-    int64_t real_result;
+    int32_t result = 0;
+    int64_t real_result = 0;
 
     switch (op) {
         case ADD: result = a + b; real_result = (int64_t)a + (int64_t)b; break;

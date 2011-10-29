@@ -14,19 +14,46 @@
  * by command line arguments.
  */
 typedef struct {
-    char* stdin_file;       ///< The file where the STDIN device gets its data from.
-    char* stdout_file;      ///< The file where the STDOUT device writes its data to.
-    int32_t mem_size;       ///< The size of the emulator memory, in words (1 word = 4 bytes).
-    int32_t mmu_base;       ///< The value of the MMU_BASE register (s_ckone::mmu_base).
-    int32_t mmu_limit;      ///< The value of the MMU_LIMIT register (s_ckone::mmu_limit).
-    bool zero;              ///< Whether the memory and registers should be zeroed before emulation begins.
-    int mem_cols;           ///< How many columns to print in the memory dumps.
-    bool mem_swap_base;     ///< Use the non-default base (10 or 16) in memory dumps.
-    bool step;              ///< If true, the emulator will pause after each instruction.
-    int verbosity;          ///< If 0, only the most important messages are shown. If 2, every debug message is shown.
-    bool emulate_bugs;      ///< If true, emulate bugs found in TitoKone 1.203.
-    char* program;          ///< The file where the program is to be read from. If "-", stdin is used.
-    bool include_symtable;  ///< If true, the symbol table is printed in every dump.
+    /// The file where the STDIN device gets its data from.
+    char* stdin_file;       
+
+    /// The file where the STDOUT device writes its data to.
+    char* stdout_file;      
+
+    /// The size of the emulator memory, in words (1 word = 4 bytes).
+    int32_t mem_size;       
+
+    /// The value of the MMU_BASE register (s_ckone::mmu_base).
+    int32_t mmu_base;       
+
+    /// The value of the MMU_LIMIT register (s_ckone::mmu_limit).
+    int32_t mmu_limit;      
+
+    /// Whether the memory and registers should be zeroed before 
+    /// emulation begins.
+    bool zero;              
+
+    /// How many columns to print in the memory dumps.
+    int mem_cols;           
+
+    /// Use the non-default base (10 or 16) in memory dumps.
+    bool mem_swap_base;     
+
+    /// If true, the emulator will pause after each instruction.
+    bool step;              
+
+    /// If 0, only the most important messages are shown. If 2, every 
+    /// debug message is shown.
+    int verbosity;          
+
+    /// If true, emulate bugs found in Titokone 1.203.
+    bool emulate_bugs;      
+
+    /// The file where the program is to be read from. If "-", stdin is used.
+    char* program;          
+
+    /// If true, the symbol table is printed in every dump.
+    bool include_symtable;  
 } s_arguments;
 
 

@@ -148,7 +148,11 @@ make_instr (
         int16_t addr                ///< The address/constant part.
         )
 {
-    return (opcode << 24) | (first_operand << 21) | (addr_mode << 19) | (index_reg << 16) | addr;
+    return (opcode << 24) 
+         | (first_operand << 21) 
+         | (addr_mode << 19) 
+         | (index_reg << 16) 
+         |  addr;
 }
 
 

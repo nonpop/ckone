@@ -2,7 +2,7 @@
  * @file ext.c
  *
  * Implements operations involving the external world.
- * These operations are IN, OUT, and SVC.
+ * These operations are IN, OUT and SVC.
  *
  * Calls functions from mmu.c to read and write memory, and
  * from instr.c to decode instructions.

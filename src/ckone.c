@@ -38,7 +38,8 @@ ckone_init (
     DLOG ("Allocating emulator memory...\n", 0);
     kone->mem = malloc (args.mem_size*sizeof(int32_t));
     if (!kone->mem) {
-        ELOG ("Could not allocate %d bytes of memory\n", args.mem_size*sizeof(int32_t));
+        ELOG ("Could not allocate %d bytes of memory\n", 
+                args.mem_size*sizeof(int32_t));
         return false;
     }
     DLOG ("Allocated %d bytes of memory\n", args.mem_size*sizeof(int32_t));
@@ -142,7 +143,8 @@ ckone_load (
             EXPECTED ("an integer");
 
         if (i >= kone->mmu_limit) {
-            ELOG ("The program is too big to fit in MMU_LIMIT = %d words\n", kone->mmu_limit);
+            ELOG ("The program is too big to fit in MMU_LIMIT = %d words\n", 
+                    kone->mmu_limit);
             return false;
         }
         kone->mem[kone->mmu_base + i] = instr;
@@ -168,7 +170,8 @@ ckone_load (
             EXPECTED ("an integer");
 
         if (i >= kone->mmu_limit) {
-            ELOG ("The program is too big to fit in MMU_LIMIT = %d words\n", kone->mmu_limit);
+            ELOG ("The program is too big to fit in MMU_LIMIT = %d words\n", 
+                    kone->mmu_limit);
             return false;
         }
         kone->mem[kone->mmu_base + i] = data;

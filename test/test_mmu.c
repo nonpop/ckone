@@ -8,13 +8,13 @@ void test_mmu () {
     s_ckone k;
     int32_t mem[2];
 
-    k.mem_size = sizeof(mem);
+    k.mem_size = sizeof(mem)/sizeof(int32_t);
     k.mem = mem;
     
     {
         clear (&k);
         k.mmu_base = 1;
-        k.mmu_limit = 2;
+        k.mmu_limit = 1;
         k.mem[1] = 1337;
         k.mar = 0;
 
@@ -25,7 +25,7 @@ void test_mmu () {
     {
         clear (&k);
         k.mmu_base = 1;
-        k.mmu_limit = 2;
+        k.mmu_limit = 1;
         k.mar = 2;
 
         mmu_read (&k);
@@ -34,7 +34,7 @@ void test_mmu () {
     {
         clear (&k);
         k.mmu_base = 1;
-        k.mmu_limit = 2;
+        k.mmu_limit = 1;
         TEST (int32_t, "%u", 0, k.mem[1]);
 
         k.mar = 0;

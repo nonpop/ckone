@@ -29,14 +29,15 @@ static s_symtable* symtable = NULL;
 
 /**
  * @internal
- * Allocate a new symbol table node.
+ * Create a new symbol table node and copy the name
+ * and value into it.
  *
  * @return NULL if the allocation failed.
  */
 static s_symtable* 
-allocate_node (
-        char* name,     ///< The name of the symbol (used to allocate enough memory).
-        char* value     ///< The string value of the symbol (used to allocate enough memory).
+create_node (
+        char* name,     ///< The name of the symbol.
+        char* value     ///< The string value of the symbol.
         ) 
 {
     s_symtable* new = malloc (sizeof (s_symtable));
@@ -55,6 +56,10 @@ allocate_node (
         free (new);
         return NULL;
     }
+
+    strcpy (new->name, name);
+    strcpy (new->value_str, value);
+    sscanf (value, "%d", &new->value);
 
     return new;
 }
@@ -90,15 +95,11 @@ symtable_insert (
         char* value     ///< The string value of the symbol.
         ) 
 {
-    s_symtable* new = allocate_node (name, value);
+    s_symtable* new = create_node (name, value);
     if (!new) {
         ELOG ("Failed to allocate memory for a symbol table node\n", 0);
         return false;
     }
-
-    strcpy (new->name, name);
-    strcpy (new->value_str, value);
-    sscanf (value, "%d", &new->value);
 
     new->next = symtable;
     symtable = new;
