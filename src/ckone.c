@@ -67,13 +67,13 @@ ckone_init (
  *
  * @return The line read, or NULL if there was an error.
  */
+static char buf[1024];
 static char* 
 read_line (
         FILE* input,        ///< The file to read from.
         int* linenum        ///< A pointer to the line number counter.
         ) 
 {
-    static char buf[1024];
     if (!fgets (buf, sizeof(buf), input)) {
         ELOG ("Failed to read from program file\n", 0);
         return NULL;
