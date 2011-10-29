@@ -66,7 +66,7 @@ create_node (
     strncpy (new->name, name, 0);
 
     DLOG ("Copying value %s...\n", value);
-    strncpy (new->value_str, 0);
+    strncpy (new->value_str, value, 0);
 
     DLOG ("Converting value to integer...\n", 0);
     sscanf (value, "%d", &new->value);
