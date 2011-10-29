@@ -33,8 +33,8 @@ configure_file (
 
 include_directories("${PROJECT_BINARY_DIR}" "${PROJECT_SOURCE_DIR}/src")
 
-#set(CMAKE_C_FLAGS "-std=c99 -Wall -Wextra -Werror -pedantic -g3")
-set(CMAKE_C_FLAGS "-std=c99 -Wall -Wextra -Werror -pedantic -Os")
+#set(CMAKE_C_FLAGS "-fstack-protector -D_FORTIFY_SOURCE=2 -std=c99 -Wall -Wextra -Werror -pedantic -g3")
+set(CMAKE_C_FLAGS "-fstack-protector -D_FORTIFY_SOURCE=1 -std=c99 -Wall -Wextra -Werror -pedantic -Os")
 
 
 add_library(emu STATIC src/alu.c src/args.c src/cpu.c src/ext.c src/instr.c src/log.c src/mmu.c)
