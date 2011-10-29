@@ -73,8 +73,7 @@ read_line (
         int* linenum        ///< A pointer to the line number counter.
         ) 
 {
-    //static char buf[1024];
-    char* buf = malloc (1024);
+    static char buf[1024];
     if (!fgets (buf, sizeof(buf), input)) {
         ELOG ("Failed to read from program file\n", 0);
         return NULL;
