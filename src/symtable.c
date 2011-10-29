@@ -53,7 +53,7 @@ create_node (
         return NULL;
     }
 
-    size = (strlen (value) + 1) * sizeof (char);
+    size = (strlen (value_str) + 1) * sizeof (char);
     DLOG ("Allocating %d bytes for the value...\n", size);
     new->value_str = malloc (size);
     if (!new->value_str) {
