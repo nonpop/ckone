@@ -45,7 +45,7 @@ create_node (
     if (!new)
         return NULL;
 
-    size_t size = strlen (name) + 1;
+    size_t size = (strlen (name) + 1) * sizeof (char);
     DLOG ("Allocating %d bytes for the name...\n", size);
     new->name = malloc (size);
     if (!new->name) {
@@ -53,7 +53,7 @@ create_node (
         return NULL;
     }
 
-    size = strlen (value) + 1;
+    size = (strlen (value) + 1) * sizeof (char);
     DLOG ("Allocating %d bytes for the value...\n", size);
     new->value_str = malloc (size);
     if (!new->value_str) {
