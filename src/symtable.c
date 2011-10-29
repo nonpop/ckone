@@ -40,13 +40,14 @@ create_node (
         char* value     ///< The string value of the symbol.
         ) 
 {
-    DLOG ("Allocating %d bytes for the struct...\n", sizeof (s_symtable));
-    s_symtable* new = malloc (sizeof (s_symtable));
+    size_t size = sizeof (s_symtable);
+    DLOG ("Allocating %zu bytes for the struct...\n", size);
+    s_symtable* new = malloc (size);
     if (!new)
         return NULL;
 
-    size_t size = (strlen (name) + 1) * sizeof (char);
-    DLOG ("Allocating %d bytes for the name...\n", size);
+    size = (strlen (name) + 1) * sizeof (char);
+    DLOG ("Allocating %zu bytes for the name...\n", size);
     new->name = malloc (size);
     if (!new->name) {
         free (new);
@@ -54,7 +55,7 @@ create_node (
     }
 
     size = (strlen (value) + 1) * sizeof (char);
-    DLOG ("Allocating %d bytes for the value...\n", size);
+    DLOG ("Allocating %zu bytes for the value...\n", size);
     new->value_str = malloc (size);
     if (!new->value_str) {
         free (new->name);
