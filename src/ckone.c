@@ -408,7 +408,10 @@ pause (
                 "the symbol table, or \"q\" to quit: ");
 
         char buf[1024];
-        fgets (buf, sizeof (buf), stdin);
+        if (!fgets (buf, sizeof (buf), stdin)) {
+            ELOG ("Input error, stopping...\n", 0);
+            return false;
+        }
 
         if (!strcmp (buf, "\n"))
             return true;
